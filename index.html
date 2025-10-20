@@ -1,15 +1,76 @@
 <!doctype html>
-<html lang="">
+<html lang="en">
   <head>
+    <!-- Base meta -->
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>QALive | Interactive Event Q&A Platform</title>
+
+    <!-- Description -->
+    <meta
+      name="description"
+      content="QALive is a real-time Q&A platform for events and conferences. Engage your audience effortlessly—create sessions, share QR codes, and collect live questions in one place."
+    />
+
+    <!-- Keywords -->
+    <meta
+      name="keywords"
+      content="qalive, q&a app, live question platform, interactive Q&A, audience engagement tool, event management, live sessions, conference feedback, real time Q&A"
+    />
+
+    <!-- Author -->
+    <meta name="author" content="Christian Ludovic Talekeufouet" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.svg" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="QALive | Interactive Event Q&A Platform" />
+    <meta
+      property="og:description"
+      content="QALive helps you make every event more interactive with live questions, real-time feedback, and dynamic audience participation."
+    />
+    <meta property="og:url" content="https://app.qalive.ink" />
+    <meta property="og:image" content="/images/og-image.pngs" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="QALive | Interactive Event Q&A Platform" />
+    <meta
+      name="twitter:description"
+      content="Run live Q&A sessions seamlessly—QALive turns audience interaction into real-time insights."
+    />
+    <meta name="twitter:image" content="/images/og-image.jpg" />
+
+    <!-- Google Fonts and icons -->
     <link
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json" is:inline>
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "QA Live",
+        "url": "https://app.qalive.io",
+        "description": "QALive allows event organizers to run live Q&A sessions, collect audience questions instantly, and display them on stage.",
+        "applicationCategory": "Productivity",
+        "operatingSystem": "All",
+        "publisher": {
+          "@type": "Organization",
+          "name": "QALive",
+          "url": "https://qalive.ink"
+        },
+        "image": "https://app.qalive.ink/images/og-image.png"
+      }
+    </script>
   </head>
+
   <body class="font-jakarta bg-white">
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
