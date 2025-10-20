@@ -16,7 +16,7 @@ export const useAuthSotre = defineStore('auth', () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://app.qalive.ink',
+        redirectTo: 'https://app.qalive.ink/overview',
       },
     })
     if (error) {
