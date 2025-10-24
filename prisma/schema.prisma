@@ -18,11 +18,13 @@ datasource db {
 // Modèle pour les sessions de questions-réponses
 model Session {
   id          Int      @id @default(autoincrement())
+  slug        String?   @db.Text
   createdAt   DateTime @default(now()) @map("created_at")
   name        String
   isActive    Boolean  @default(true) @map("is_active")
   accessCode  String?  @unique @map("access_code")
   expiresAt   DateTime? @map("expires_at")
+
 
   // Le lien vers l'utilisateur Supabase (un UUID stocké comme String)
   userId      String   @map("user_id")
