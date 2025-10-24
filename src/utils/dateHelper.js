@@ -1,8 +1,3 @@
-// utils/dateHelper.js
-
-/**
- * Formate une date ISO en date locale (ex: "25/10/2025")
- */
 export function formatDateLocal(isoString) {
   if (!isoString) return ''
 
@@ -15,7 +10,9 @@ export function formatDateLocal(isoString) {
 }
 
 /**
- * Formate une date ISO en heure locale (ex: "14:30")
+ * Formate une date ISO en heure locale selon le fuseau horaire de l'utilisateur
+ * @param {string} isoString - Date au format ISO
+ * @returns {string} Heure formatée (ex: "14:30")
  */
 export function formatTimeLocal(isoString) {
   if (!isoString) return ''
@@ -25,13 +22,4 @@ export function formatTimeLocal(isoString) {
     hour: '2-digit',
     minute: '2-digit',
   })
-}
-
-/**
- * Formate date + heure ensemble (ex: "25/10/2025 à 14:30")
- */
-export function formatDateTimeLocal(isoString) {
-  if (!isoString) return ''
-
-  return `${formatDateLocal(isoString)} à ${formatTimeLocal(isoString)}`
 }
