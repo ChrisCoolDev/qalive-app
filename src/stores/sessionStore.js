@@ -104,8 +104,8 @@ export const useSessionStore = defineStore('session', () => {
     const baseSlug = slugify(sessionName.value)
     const uniqueSlug = await generateUniqueSlug(baseSlug)
 
-    const expirationDate = new Date()
-    expirationDate.setHours(expirationDate.getHours() + 4)
+    const now = new Date()
+    const expirationDate = new Date(now.getTime() + 4 * 60 * 60 * 1000) // Ajoute 4 heures en millisecondes
 
     const { data: newSession, error: createError } = await supabase
       .from('sessions')

@@ -1,7 +1,4 @@
 export const sessionService = {
-  /* Récupère une liste paginée de sessions pour l'utilisateur connecté.
-   *Le statut 'is_active' est calculé dynamiquement.*/
-
   async fetchSessions(page, pageSize, supabase) {
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
@@ -23,27 +20,24 @@ export const sessionService = {
 
     if (error) throw error
 
-    const now = new Date()
-    // Transforme les données pour un usage plus simple
+    // ✅ Récupère l'heure actuelle en UTC
+    const nowUTC = new Date()
+
     const sessionsWithCalculatedStatus = sessions.map((session) => {
+      // ✅ Parse la date d'expiration (déjà en UTC depuis Supabase)
       const expiresAt = session.expires_at ? new Date(session.expires_at) : null
+
       return {
         ...session,
         questionCount: session.questions[0]?.count || 0,
-        // Calcul dynamique du statut actif
-        is_active: expiresAt ? expiresAt > now : true,
+        // ✅ Compare deux dates UTC
+        is_active: expiresAt ? expiresAt > nowUTC : true,
       }
     })
 
     return sessionsWithCalculatedStatus
   },
 
-  /**
-   * Récupère les statistiques globales pour le tableau de bord :
-   * - Nombre total de sessions.
-   * - Nombre total de questions.
-   * - Nombre de sessions actuellement actives.
-   */
   async fetchDashboardStats(supabase) {
     const {
       data: { session: authSession },
@@ -54,7 +48,6 @@ export const sessionService = {
     }
     const userId = authSession.user.id
 
-    // Récupérer TOUTES les sessions de l'utilisateur avec la date d'expiration et le décompte des questions
     const { data: allSessions, error } = await supabase
       .from('sessions')
       .select('expires_at, questions(count)')
@@ -62,18 +55,17 @@ export const sessionService = {
 
     if (error) throw error
 
-    const now = new Date()
+    // ✅ Récupère l'heure actuelle en UTC
+    const nowUTC = new Date()
     let totalQuestionsCount = 0
     let activeSessionsCount = 0
 
-    // Itérer une seule fois sur toutes les sessions pour calculer les totaux
     for (const session of allSessions) {
-      // Calculer le total des questions
       totalQuestionsCount += session.questions[0]?.count || 0
 
-      // Calculer si la session est active
+      // ✅ Parse et compare en UTC
       const expiresAt = session.expires_at ? new Date(session.expires_at) : null
-      if (expiresAt ? expiresAt > now : true) {
+      if (expiresAt ? expiresAt > nowUTC : true) {
         activeSessionsCount++
       }
     }

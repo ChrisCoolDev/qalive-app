@@ -59,36 +59,25 @@ const submitQuestion = async () => {
 onMounted(async () => {
   const { data: session, error } = await supabase
     .from('sessions')
-    .select('id, expires_at') // ✅ Récupère aussi l'ID
+    .select('id, expires_at')
     .eq('slug', sessionSlug)
     .single()
 
   if (error || !session) {
     errorMsg.value = "This session doesn't exist."
     sessionExpired.value = true
-  } else if (session.expires_at && new Date(session.expires_at) < new Date()) {
-    errorMsg.value = 'This questions session is over'
-    sessionExpired.value = true
   } else {
-    sessionId.value = session.id // ✅ Stocke l'ID pour l'utiliser lors de l'insertion
-  }
+    // ✅ Parse la date d'expiration (en UTC depuis Supabase)
+    const expiresAt = new Date(session.expires_at)
+    const nowUTC = new Date()
 
-  loadingPage.value = false
-})
-
-onMounted(async () => {
-  const { data: session, error } = await supabase
-    .from('sessions')
-    .select('expires_at')
-    .eq('slug', sessionSlug)
-    .single()
-
-  if (error || !session) {
-    errorMsg.value = "This session don't exist."
-    sessionExpired.value = true
-  } else if (session.expires_at && new Date(session.expires_at) < new Date()) {
-    errorMsg.value = 'This questions session is over'
-    sessionExpired.value = true
+    // ✅ Compare en UTC
+    if (expiresAt < nowUTC) {
+      errorMsg.value = 'This questions session is over'
+      sessionExpired.value = true
+    } else {
+      sessionId.value = session.id
+    }
   }
 
   loadingPage.value = false
