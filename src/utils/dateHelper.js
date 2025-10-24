@@ -1,25 +1,37 @@
 // utils/dateHelper.js
-export function formatDateToLocal(isoString) {
+
+/**
+ * Formate une date ISO en date locale (ex: "25/10/2025")
+ */
+export function formatDateLocal(isoString) {
+  if (!isoString) return ''
+
   const date = new Date(isoString)
-  return date.toLocaleString('fr-FR', {
-    year: 'numeric',
-    month: '2-digit',
+  return date.toLocaleDateString('fr-FR', {
     day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZoneName: 'short',
+    month: '2-digit',
+    year: 'numeric',
   })
 }
 
-export function getTimeRemaining(expiresAt) {
-  const now = new Date()
-  const expiry = new Date(expiresAt)
-  const diff = expiry - now
+/**
+ * Formate une date ISO en heure locale (ex: "14:30")
+ */
+export function formatTimeLocal(isoString) {
+  if (!isoString) return ''
 
-  if (diff <= 0) return 'Expired'
+  const date = new Date(isoString)
+  return date.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+/**
+ * Formate date + heure ensemble (ex: "25/10/2025 à 14:30")
+ */
+export function formatDateTimeLocal(isoString) {
+  if (!isoString) return ''
 
-  return `${hours}h ${minutes}m remaining`
+  return `${formatDateLocal(isoString)} à ${formatTimeLocal(isoString)}`
 }
