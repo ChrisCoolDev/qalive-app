@@ -16,7 +16,7 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: '/ask/:id',
+      path: '/ask/:slug',
       name: 'AskQuestion',
       component: AskQuestionView,
     },
@@ -34,13 +34,13 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/session/:id',
+      path: '/session/:slug',
       name: 'session',
       component: QuestionsView,
       meta: { requiresAuth: true },
     },
     {
-      path: '/session/:id/qrcode',
+      path: '/session/:slug/qrcode',
       name: 'SessionQRCode',
       component: SessionQRCodeView,
       meta: { requiresAuth: true },
