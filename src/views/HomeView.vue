@@ -6,6 +6,7 @@ import { useSessionStore } from '@/stores/sessionStore'
 import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
 import { useAuthSotre } from '@/stores/authStore'
+import { formatDateToLocal, getTimeRemaining } from '@/utils/dateHelper'
 
 const sessionStore = useSessionStore()
 const authStore = useAuthSotre()
@@ -146,35 +147,19 @@ const dashboardInformations = computed(() => [
                 </td>
                 <td class="py-3 px-6 text-xs">{{ session.questionCount || 0 }}</td>
                 <td class="py-3 px-6 text-xs -space-y-3">
-                  <p>{{ new Date(session.created_at).toLocaleDateString('fr-FR') }}</p>
+                  <p>{{ formatDateToLocal(session.created_at) }}</p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{
-                      new Date(session.created_at).toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    }}
+                    {{ getTimeRemaining(session.created_at) }}
                   </p>
                 </td>
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{
-                      session.expires_at
-                        ? new Date(session.expires_at).toLocaleDateString('fr-FR')
-                        : '-'
-                    }}
+                    {{ session.expires_at ? formatDateToLocal(session.expires_at) : '-' }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{
-                      session.expires_at
-                        ? new Date(session.expires_at).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : '-'
-                    }}
+                    {{ session.expires_at ? getTimeRemaining(session.expires_at) : '-' }}
                   </p>
                 </td>
                 <td class="py-3 text-right px-6">
