@@ -59,7 +59,7 @@ onMounted(async () => {
   const { data: session, error } = await supabase
     .from('sessions')
     .select('expires_at')
-    .eq('id', sessionSlug)
+    .eq('slug', sessionSlug)
     .single()
 
   if (error || !session) {
