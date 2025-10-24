@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import AppLayout from '@/components/layouts/AppLayout.vue'
 
 const route = useRoute()
-const sessionId = route.params.id
+const sessionSlug = route.params.slug
 
 const questionText = ref('')
 const authorName = ref('')
@@ -34,7 +34,7 @@ const submitQuestion = async () => {
     {
       content: questionText.value,
       author_name: authorName.value || null,
-      session_id: sessionId,
+      session_slug: sessionSlug,
     },
   ])
 
@@ -59,7 +59,7 @@ onMounted(async () => {
   const { data: session, error } = await supabase
     .from('sessions')
     .select('expires_at')
-    .eq('id', sessionId)
+    .eq('id', sessionSlug)
     .single()
 
   if (error || !session) {

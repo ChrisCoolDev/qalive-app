@@ -8,7 +8,7 @@ import { useRoute } from 'vue-router'
 
 const questionStore = useQuestionStore()
 const route = useRoute()
-const id = route.params.id
+const slug = route.params.slug
 
 const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore)
 
@@ -26,8 +26,8 @@ function openQuestionModal(question) {
 
 // 4. Récupérer les données au chargement de la page
 onMounted(() => {
-  const sessionId = route.params.id
-  fetchQuestions(sessionId)
+  const sessionSlug = route.params.slug
+  fetchQuestions(sessionSlug)
 })
 
 console.log(questions)
@@ -41,7 +41,7 @@ console.log(questions)
           <h1 class="text-xxl font-semibold text-primary leading-[100%]">
             Session : {{ currentSession.name }}
           </h1>
-          <a :href="`/session/${id}/qrcode`" class="underline text-[13px] leading-[100%]"
+          <a :href="`/session/${slug}/qrcode`" class="underline text-[13px] leading-[100%]"
             >qr-code</a
           >
         </div>

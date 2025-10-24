@@ -8,22 +8,23 @@ export const useQuestionStore = defineStore('question', () => {
   const loading = ref(true)
   const errorMsg = ref('')
 
-  async function fetchQuestions(sessionId) {
+  async function fetchQuestions(sessionSlug) {
     try {
       const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
-        .select('id, name')
-        .eq('id', sessionId)
+        .select('id, name, slug')
+        .eq('slug', sessionSlug)
         .single()
 
       if (sessionError) throw sessionError
       if (!sessionData) throw new Error('Session non trouvée.')
+
       currentSession.value = sessionData
 
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
-        .eq('session_id', sessionId)
+        .eq('session_id', sessionData.id) // utilise l’id récupéré via le slug
         .order('created_at', { ascending: false })
 
       if (questionsError) throw questionsError

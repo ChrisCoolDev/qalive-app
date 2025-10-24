@@ -45,8 +45,8 @@ onMounted(async () => {
   await fetchDashboardData()
 })
 
-const redirectToQuestionsView = (sessionId) => {
-  window.location.href = `/session/${sessionId}`
+const redirectToQuestionsView = (sessionSlug) => {
+  window.location.href = `/session/${sessionSlug}`
 }
 
 const dashboardInformations = computed(() => [
@@ -139,7 +139,7 @@ const dashboardInformations = computed(() => [
                 v-for="session in sessions"
                 :key="session.id"
                 class="hover:bg-gray-50 cursor-pointer"
-                @click="redirectToQuestionsView(session.id)"
+                @click="redirectToQuestionsView(session.slug)"
               >
                 <td class="py-3 px-6 truncate text-sm max-w-xs font-medium">
                   {{ session.name }}

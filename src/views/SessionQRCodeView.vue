@@ -8,12 +8,12 @@ import AppLayout from '@/components/layouts/AppLayout.vue'
 
 const route = useRoute()
 const router = useRouter()
-const sessionId = route.params.id
+const sessionSlug = route.params.slug
 const session = ref(null)
 const loading = ref(true)
 
 const redirectToQuestionsPage = () => {
-  router.push(`/session/${sessionId}`)
+  router.push(`/session/${sessionSlug}`)
 }
 
 const redirectToOverview = () => {
@@ -22,7 +22,7 @@ const redirectToOverview = () => {
 
 // L'URL publique pour poser les questions
 const sessionQuestionUrl = computed(() =>
-  sessionId ? `${window.location.origin}/ask/${sessionId}` : '',
+  sessionSlug ? `${window.location.origin}/ask/${sessionSlug}` : '',
 )
 
 onMounted(async () => {
@@ -30,7 +30,7 @@ onMounted(async () => {
   const { data, error } = await supabase
     .from('sessions')
     .select('id, name, expires_at')
-    .eq('id', sessionId)
+    .eq('slug', sessionSlug)
     .single()
 
   if (data && !error) {
