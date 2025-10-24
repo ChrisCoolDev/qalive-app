@@ -15,6 +15,8 @@ const successMsg = ref('')
 const sessionExpired = ref(false)
 const loadingPage = ref(true)
 
+const sessionId = ref(null) // Ajoute cette ref
+
 const submitQuestion = async () => {
   errorMsg.value = ''
   successMsg.value = ''
@@ -22,6 +24,7 @@ const submitQuestion = async () => {
 
   if (sessionExpired.value) {
     errorMsg.value = 'Impossible de soumettre, la session est terminée.'
+    loading.value = false // ⚠️ N'oublie pas de remettre loading à false
     return
   }
   if (!questionText.value.trim()) {
@@ -34,7 +37,7 @@ const submitQuestion = async () => {
     {
       content: questionText.value,
       author_name: authorName.value || null,
-      session_slug: sessionSlug,
+      session_id: sessionId.value, // ✅ Utilise session_id au lieu de session_slug
     },
   ])
 
@@ -43,17 +46,35 @@ const submitQuestion = async () => {
   if (error) {
     errorMsg.value = error.message
   } else {
-    successMsg.value = 'Your question was sent successfuly !' // Le message est défini
+    successMsg.value = 'Your question was sent successfully!'
     questionText.value = ''
     authorName.value = ''
 
-    // 2. On lance un minuteur pour effacer le message après 3 secondes
     setTimeout(() => {
       successMsg.value = ''
-    }, 3000) // 3000 millisecondes = 3 secondes
+    }, 3000)
   }
-  loading.value = false // Assurez-vous que loading est remis à false ici aussi
 }
+
+onMounted(async () => {
+  const { data: session, error } = await supabase
+    .from('sessions')
+    .select('id, expires_at') // ✅ Récupère aussi l'ID
+    .eq('slug', sessionSlug)
+    .single()
+
+  if (error || !session) {
+    errorMsg.value = "This session doesn't exist."
+    sessionExpired.value = true
+  } else if (session.expires_at && new Date(session.expires_at) < new Date()) {
+    errorMsg.value = 'This questions session is over'
+    sessionExpired.value = true
+  } else {
+    sessionId.value = session.id // ✅ Stocke l'ID pour l'utiliser lors de l'insertion
+  }
+
+  loadingPage.value = false
+})
 
 onMounted(async () => {
   const { data: session, error } = await supabase
