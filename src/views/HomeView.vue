@@ -76,6 +76,7 @@ const dashboardInformations = computed(() => [
   <AppLayout>
     <div class="mt-[28px]">
       <div class="mb-[35px] space-y-2">
+        <p class="text-3xl font-black">I will jake this web app dude!!!</p>
         <h1 class="text-xxl font-semibold text-primary">Event management</h1>
         <p class="text-sm text-[#4F4F4F]">
           Track your audience engagement and manage interactions in real-time.
