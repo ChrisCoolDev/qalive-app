@@ -69,7 +69,7 @@ onMounted(async () => {
           <div class="flex flex-col items-center space-y-5 w-full">
             <button
               @click="redirectToQuestionsPage"
-              class="flex items-center justify-center py-[11px] bg-[#7738C7] rounded-[4px] max-w-[303px] w-full text-white text-[13px] font-medium"
+              class="flex items-center justify-center py-[11px] bg-black rounded-[4px] max-w-[303px] w-full text-white text-[13px] font-medium"
             >
               See the questions
             </button>

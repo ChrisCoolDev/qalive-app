@@ -49,7 +49,7 @@ const handleCreateSession = async () => {
     </div>
     <button
       type="submit"
-      class="w-full py-3 px-4 bg-[#7738C7] text-white rounded text-[13px]"
+      class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
       :disabled="loading"
     >
       {{ loading ? 'Creation...' : 'Create a session' }}
