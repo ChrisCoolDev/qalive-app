@@ -30,3 +30,6 @@ coverage
 *.tsbuildinfo
 
 /src/generated/prisma
+
+.env.development
+.env.production
