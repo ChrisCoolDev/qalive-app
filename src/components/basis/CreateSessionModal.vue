@@ -1,19 +1,19 @@
 <script setup>
-import { useSessionStore } from '@/stores/sessionStore'
-import { storeToRefs } from 'pinia'
+import { useSessionStore } from "@/stores/sessionStore";
+import { storeToRefs } from "pinia";
 
-const sessionStore = useSessionStore()
+const sessionStore = useSessionStore();
 
-const { sessionName, accessCode, showModal } = storeToRefs(sessionStore)
+const { sessionName, accessCode, showModal } = storeToRefs(sessionStore);
 
-const { createSession, redirectToSessionQrCode } = sessionStore
+const { createSession, redirectToSessionQrCode } = sessionStore;
 
 const handleCreateSession = async () => {
-  const success = await createSession()
+  const success = await createSession();
   if (success) {
-    redirectToSessionQrCode()
+    redirectToSessionQrCode();
   }
-}
+};
 </script>
 
 <template>
@@ -52,7 +52,7 @@ const handleCreateSession = async () => {
       class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
       :disabled="loading"
     >
-      {{ loading ? 'Creation...' : 'Create a session' }}
+      {{ loading ? "Creation..." : "Create a session" }}
     </button>
   </form>
 </template>
