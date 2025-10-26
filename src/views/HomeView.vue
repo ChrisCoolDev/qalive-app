@@ -76,6 +76,7 @@ const dashboardInformations = computed(() => [
   <AppLayout>
     <div class="mt-[28px]">
       <div class="mb-[35px] space-y-2">
+        <h2>I hate jazzz, are you okay?</h2>
         <h1 class="text-xxl font-semibold text-primary">Event management</h1>
         <p class="text-sm text-[#4F4F4F]">
           Track your audience engagement and manage interactions in real-time.
@@ -107,7 +108,7 @@ const dashboardInformations = computed(() => [
           </div>
         </div>
         <button
-          class="text-center px-[12px] font-medium py-1 text-[12px] leading-[100%] text-white bg-[#7738C7] rounded-[4px]"
+          class="text-center px-[12px] font-medium py-1 text-[12px] leading-[100%] text-white bg-black rounded-[4px]"
           @click="openModal"
         >
           New event
