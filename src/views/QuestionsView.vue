@@ -1,36 +1,63 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import AppLayout from '@/components/layouts/AppLayout.vue'
-import QuestionCard from '@/components/basis/questionCard.vue'
-import { useQuestionStore } from '@/stores/questionStore'
-import { storeToRefs } from 'pinia'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted } from "vue";
+import AppLayout from "@/components/layouts/AppLayout.vue";
+import QuestionCard from "@/components/basis/questionCard.vue";
+import { useQuestionStore } from "@/stores/questionStore";
+import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
 
-const questionStore = useQuestionStore()
-const route = useRoute()
-const slug = route.params.slug
+const questionStore = useQuestionStore();
+const route = useRoute();
+const slug = route.params.slug;
 
-const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore)
-
-const { fetchQuestions } = questionStore
+const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore);
+const { fetchQuestions } = questionStore;
 
 // États pour le modal
-const selectedQuestion = ref(null)
-const showModal = ref(false)
+const selectedQuestion = ref(null);
+const selectedQuestionIndex = ref(null);
+const showModal = ref(false);
 
-// 3. Fonction pour ouvrir le modal avec une question
+// Ouvre le modal sur la question choisie et sauvegarde son index
 function openQuestionModal(question) {
-  selectedQuestion.value = question
-  showModal.value = true
+  const idx = questions.value.findIndex((q) => q.id === question.id);
+  selectedQuestionIndex.value = idx;
+  selectedQuestion.value = question;
+  showModal.value = true;
 }
 
-// 4. Récupérer les données au chargement de la page
-onMounted(() => {
-  const sessionSlug = route.params.slug
-  fetchQuestions(sessionSlug)
-})
+// Change la question affichée selon l'index sans dépasser les limites
+function showQuestionByIndex(index) {
+  if (index >= 0 && index < questions.value.length) {
+    selectedQuestionIndex.value = index;
+    selectedQuestion.value = questions.value[index];
+  }
+}
 
-console.log(questions)
+// Handler flèches clavier pour navigation
+function handleArrowKey(e) {
+  if (!showModal.value) return;
+  if (e.key === "ArrowLeft") {
+    showQuestionByIndex(selectedQuestionIndex.value - 1);
+  } else if (e.key === "ArrowRight") {
+    showQuestionByIndex(selectedQuestionIndex.value + 1);
+  }
+}
+
+// Attache/détache l'écouteur d'événements clavier lors du cycle de vie du composant
+onMounted(() => {
+  window.addEventListener("keydown", handleArrowKey);
+  const sessionSlug = route.params.slug;
+  fetchQuestions(sessionSlug);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleArrowKey);
+});
+
+const redirectToQuestionsView = (sessionSlug) => {
+  window.location.href = `/session/${sessionSlug}`;
+};
 </script>
 
 <template>
@@ -41,7 +68,9 @@ console.log(questions)
           <h1 class="text-xxl font-semibold text-primary leading-[100%]">
             Session : {{ currentSession.name }}
           </h1>
-          <a :href="`/session/${slug}/qrcode`" class="underline text-[13px] leading-[100%]"
+          <a
+            :href="`/session/${slug}/qrcode`"
+            class="underline text-[13px] leading-[100%]"
             >qr-code</a
           >
         </div>
@@ -53,12 +82,18 @@ console.log(questions)
 
       <!-- Gestion des états d'affichage -->
       <div v-if="loading" class="text-center text-gray-500 text-sm">Loading...</div>
-      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
+      <div
+        v-else-if="errorMsg"
+        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
+      >
         {{ errorMsg }}
       </div>
 
       <!-- Grille des questions -->
-      <div v-else-if="questions.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-else-if="questions.length > 0"
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <QuestionCard
           v-for="question in questions"
           :key="question.id"
@@ -96,7 +131,9 @@ console.log(questions)
           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         >
           <!-- Contenu du Modal -->
-          <div class="bg-white rounded-md px-8 py-10 max-w-[800px] w-full shadow-2xl relative">
+          <div
+            class="bg-white rounded-md px-8 py-10 max-w-[800px] w-full shadow-2xl relative"
+          >
             <button
               @click="showModal = false"
               class="absolute top-2 right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
