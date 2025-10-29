@@ -5,6 +5,11 @@ export default {
     extend: {
       fontFamily: {
         jakarta: ['nunito', 'sans serif'],
+        mabryLight: ['mabryLight'],
+        mabry: ['mabry'],
+        mabryMedium: ['mabryMedium'],
+        mabryBold: ['mabryBold'],
+        mabryBlack: ['mabryBlack'],
       },
       letterSpacing: {
         thigher: '0%',

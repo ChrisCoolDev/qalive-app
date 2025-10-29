@@ -1,43 +1,43 @@
 // /views/SessionQRCode.vue
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { supabase } from '@/lib/supabase'
-import VueQrcode from 'qrcode.vue'
-import AppLayout from '@/components/layouts/AppLayout.vue'
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { supabase } from "@/lib/supabase";
+import VueQrcode from "qrcode.vue";
+import AppLayout from "@/components/layouts/AppLayout.vue";
 
-const route = useRoute()
-const router = useRouter()
-const sessionSlug = route.params.slug
-const session = ref(null)
-const loading = ref(true)
+const route = useRoute();
+const router = useRouter();
+const sessionSlug = route.params.slug;
+const session = ref(null);
+const loading = ref(true);
 
 const redirectToQuestionsPage = () => {
-  router.push(`/session/${sessionSlug}`)
-}
+  router.push(`/session/${sessionSlug}`);
+};
 
 const redirectToOverview = () => {
-  router.push('/overview')
-}
+  router.push("/overview");
+};
 
 // L'URL publique pour poser les questions
 const sessionQuestionUrl = computed(() =>
-  sessionSlug ? `${window.location.origin}/ask/${sessionSlug}` : '',
-)
+  sessionSlug ? `${window.location.origin}/ask/${sessionSlug}` : ""
+);
 
 onMounted(async () => {
   // Récupérer les détails de la session
   const { data, error } = await supabase
-    .from('sessions')
-    .select('id, name, expires_at')
-    .eq('slug', sessionSlug)
-    .single()
+    .from("sessions")
+    .select("id, name, expires_at")
+    .eq("slug", sessionSlug)
+    .single();
 
   if (data && !error) {
-    session.value = data
+    session.value = data;
   }
-  loading.value = false
-})
+  loading.value = false;
+});
 </script>
 
 <template>
@@ -53,16 +53,16 @@ onMounted(async () => {
         </div>
 
         <div class="flex justify-center">
-          <vue-qrcode :value="sessionQuestionUrl" :size="200" class="rounded-md" />
+          <vue-qrcode :value="sessionQuestionUrl" :size="200" class="rounded-xl" />
         </div>
-        <div class="flex flex-col items-center justify-center space-y-6">
+        <div class="flex flex-col items-center justify-center space-y-6 w-full">
           <div v-if="session.expires_at" class="flex items-center space-x-2">
             <div class="h-0 w-[90px] border-b border-b-gray-200 border-b-solid"></div>
             <p class="text-gray-500 text-sm leading-[100%]">Or go on this link</p>
             <div class="h-0 w-[90px] border-b border-b-gray-200 border-b-solid"></div>
           </div>
           <p
-            class="pl-4 pr-[100px] font-semibold text-tertiary py-3 border border-solid boder-gray-300 rounded-[4px] text-[13px] text-left max-w-max w-full"
+            class="pl-4 pr-2 truncate max-w-[303px] font-semibold text-tertiary py-3 border border-solid boder-gray-300 rounded-[4px] text-[13px] text-left w-full"
           >
             {{ sessionQuestionUrl }}
           </p>
