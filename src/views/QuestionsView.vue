@@ -54,10 +54,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleArrowKey);
 });
-
-const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`;
-};
 </script>
 
 <template>
@@ -92,7 +88,7 @@ const redirectToQuestionsView = (sessionSlug) => {
       <!-- Grille des questions -->
       <div
         v-else-if="questions.length > 0"
-        class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+        class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"
       >
         <QuestionCard
           v-for="question in questions"

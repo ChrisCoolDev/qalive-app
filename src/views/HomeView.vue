@@ -77,7 +77,7 @@ const dashboardInformations = computed(() => [
     <div class="mt-[28px]">
       <div class="mb-[35px] space-y-2">
         <h1 class="text-xxl font-semibold text-primary">Event management</h1>
-        <p class="text-sm text-[#4F4F4F]">
+        <p class="text-sm text-[#4F4F4F] font-mabry">
           Track your audience engagement and manage interactions in real-time.
         </p>
       </div>
@@ -101,9 +101,15 @@ const dashboardInformations = computed(() => [
           />
           <div class="-space-y-0">
             <p class="text-sm leading-[100%]">{{ user.user_metadata.name }}</p>
+
             <button @click="handleLogout" class="text-[10px] text-red-700 leading-[100%]">
               Disconnect
             </button>
+            <!--
+            <span class="text-[10px] text-gray-600 leading-[100%]">{{
+              user.user_metadata.email
+            }}</span>
+            -->
           </div>
         </div>
         <button
