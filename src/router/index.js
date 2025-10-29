@@ -6,6 +6,7 @@ import CreateSessionView from '@/views/CreateSessionView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AskQuestionView from '@/views/AskQuestionView.vue'
 import SessionQRCodeView from '@/views/SessionQRCodeView.vue'
+import UserProfileView from '@/views/UserProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,7 +21,11 @@ const router = createRouter({
       name: 'AskQuestion',
       component: AskQuestionView,
     },
-
+    {
+      path: '/profile',
+      name: 'UserProfile',
+      component: UserProfileView,
+    },
     {
       path: '/overview',
       name: 'home',

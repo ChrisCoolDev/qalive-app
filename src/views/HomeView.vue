@@ -192,28 +192,31 @@ const dashboardInformations = computed(() => [
         </div>
 
         <!--Pagination -->
-        <div class="flex justify-end items-center mt-8 space-x-4 mb-[30px]">
-          <span class="text-[13px] text-gray-700 leading-[100%]"
-            >Page {{ page }} on {{ totalPages }}</span
-          >
-          <button
-            @click="prevPage"
-            :disabled="page === 1"
-            class="disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span class="material-symbols-outlined text-tertiary text-[14px]">
-              keyboard_double_arrow_left
-            </span>
-          </button>
-          <button
-            @click="nextPage"
-            :disabled="page === totalPages"
-            class="disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span class="material-symbols-outlined text-tertiary text-[14px]">
-              keyboard_double_arrow_right
-            </span>
-          </button>
+        <div class="w-full flex items-center justify-between mt-8 mb-[30px]">
+          <a href="/" class="underline text-[13px]">Upgrade to a premium plan !</a>
+          <div class="flex justify-end items-center space-x-4">
+            <span class="text-[13px] text-gray-700 leading-[100%]"
+              >Page {{ page }} on {{ totalPages }}</span
+            >
+            <button
+              @click="prevPage"
+              :disabled="page === 1"
+              class="disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="material-symbols-outlined text-tertiary text-[14px]">
+                keyboard_double_arrow_left
+              </span>
+            </button>
+            <button
+              @click="nextPage"
+              :disabled="page === totalPages"
+              class="disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span class="material-symbols-outlined text-tertiary text-[14px]">
+                keyboard_double_arrow_right
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

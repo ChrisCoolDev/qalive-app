@@ -49,3 +49,19 @@ model Question {
 
   @@map("questions")
 }
+
+//Modele pour les champs customs sur les users
+
+model Profile {
+  id        String   @id @db.Uuid
+  isPremium Boolean  @default(false) @map("is_premium")
+  plan      Plan     @default(basic)
+
+  @@map("profiles")
+}
+
+enum Plan {
+  basic
+  premium
+  premium_plus
+}
