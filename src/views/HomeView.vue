@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import AppLayout from "@/components/layouts/AppLayout.vue";
 import { storeToRefs } from "pinia";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -11,6 +11,35 @@ import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
 const sessionStore = useSessionStore();
 const authStore = useAuthSotre();
 
+async function handleUpgrade() {
+  if (!user.value) {
+    alert("Please login first.");
+    return;
+  }
+
+  const variantId = 12345; // Remplace par l’ID variant Lemon Squeezy de ton abonnement
+
+  loading.value = true;
+
+  const response = await fetch("/functions/create-lemon-checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: user.value.id,
+      variantId,
+    }),
+  });
+
+  const data = await response.json();
+  loading.value = false;
+
+  if (data.checkoutUrl) {
+    window.location.href = data.checkoutUrl; // Redirige le client vers la page Lemon Squeezy
+  } else {
+    alert(data.error || "Failed to create checkout link.");
+  }
+}
+
 const {
   sessions,
   totalSessions,
@@ -20,6 +49,8 @@ const {
   loading,
   errorMsg,
   showModal,
+  showUpgradePlanModal,
+  errorUpgradeMessage,
   totalPages,
   user,
 } = storeToRefs(sessionStore);
@@ -70,6 +101,18 @@ const dashboardInformations = computed(() => [
     imagePath: "/illustrations/activeevents.svg",
   },
 ]);
+
+const getHourFromDate = (dateStr) => {
+  const dateObj = new Date(dateStr);
+  return dateObj.getHours(); // renvoie un entier entre 0 et 23
+};
+
+const sessionExpiration = (date) => {
+  if (!date) return false; // gestion si date est null
+  const expiresHour = getHourFromDate(date);
+  const localHourInt = new Date().getHours();
+  return expiresHour < localHourInt;
+};
 </script>
 
 <template>
@@ -177,13 +220,13 @@ const dashboardInformations = computed(() => [
                 <td class="py-3 text-right px-6">
                   <span
                     :class="[
-                      session.is_active
+                      sessionExpiration(session.expires_at)
                         ? 'bg-[#D9F3DD] text-[#2F8132]'
                         : 'bg-[#FFEAEA] text-[#DF5F5F]',
+                      'px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]',
                     ]"
-                    class="px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]"
                   >
-                    {{ session.is_active ? "active" : "inactive" }}
+                    {{ sessionExpiration(session.expires_at) ? "active" : "inactive" }}
                   </span>
                 </td>
               </tr>
@@ -237,6 +280,36 @@ const dashboardInformations = computed(() => [
           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         >
           <CreateSessionModal />
+        </div>
+      </Transition>
+    </Teleport>
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div
+          v-if="showUpgradePlanModal"
+          @click.self="showUpgradePlanModal = false"
+          class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+        >
+          <div
+            class="space-y-4 bg-white rounded-[6px] px-6 py-8 max-w-[350px] w-full relative"
+          >
+            <div
+              @click="showUpgradePlanModal = false"
+              class="absolute top-3 right-5 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors cursor-pointer"
+            >
+              <span class="material-symbols-outlined"> close_small </span>
+            </div>
+            <h2 class="text-lg font-medium text-primary mb-6">Upgrade to premium plan</h2>
+
+            <p class="text-[14px] text-gray-700">{{ errorUpgradeMessage }}</p>
+            <button
+              type="submit"
+              class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
+              @click="handleUpgrade"
+            >
+              Upgrade now
+            </button>
+          </div>
         </div>
       </Transition>
     </Teleport>

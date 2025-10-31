@@ -15,6 +15,7 @@ export const useAuthSotre = defineStore('auth', () => {
     errorMsg.value = ''
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      //options: {redirectTo: 'https://app.qalive.ink/overview}
     })
     if (error) {
       errorMsg.value = error.message
@@ -29,7 +30,7 @@ export const useAuthSotre = defineStore('auth', () => {
     return true
   }
 
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabase.auth.onAuthStateChange(async (event, session) => {
     console.log('Auth event:', event)
     user.value = session?.user ?? null
     isLoggedIn.value = !!user.value

@@ -9,6 +9,7 @@ export const useSessionStore = defineStore('session', () => {
   const totalQuestions = ref(0)
   const loading = ref(false)
   const errorMsg = ref('')
+  const errorUpgradeMessage = ref('')
   const activeSessions = ref(0)
 
   const page = ref(1)
@@ -17,6 +18,7 @@ export const useSessionStore = defineStore('session', () => {
   const user = ref(null)
 
   const showModal = ref(false)
+  const showUpgradePlanModal = ref(false)
   const sessionName = ref('')
   const accessCode = ref('')
   const successMsg = ref('')
@@ -101,6 +103,40 @@ export const useSessionStore = defineStore('session', () => {
       return false
     }
 
+    // Ici, il a droit à 1 session gratuite.
+    // S'il en a déjà créé 1+ et n'est pas PREMIUM, bloquer :
+    // Il te faut un moyen de récupérer le statut premium dans Supabase (profiles/plan)
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('plan, is_premium')
+      .eq('id', user.value.id)
+      .single()
+
+    if (profileError) {
+      errorMsg.value = 'Could not verify user plan'
+      loading.value = false
+      return false
+    }
+
+    if (!profile.is_premium) {
+      // Limite pour utilisateurs non premium
+      const { count } = await supabase
+        .from('sessions')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.value.id)
+
+      if (count >= 1) {
+        errorUpgradeMessage.value =
+          'Limit reached: free users can only create one session. Upgrade to premium to create more.'
+        showUpgradePlanModal.value = true
+        loading.value = false
+        return false
+      }
+    }
+
+    // Création de session possible…
+    // ... ton code habituel ici
+
     const baseSlug = slugify(sessionName.value)
     const uniqueSlug = await generateUniqueSlug(baseSlug)
 
@@ -172,7 +208,9 @@ export const useSessionStore = defineStore('session', () => {
     pageSize,
     loading,
     errorMsg,
+    errorUpgradeMessage,
     showModal,
+    showUpgradePlanModal,
     sessionName,
     accessCode,
     successMsg,

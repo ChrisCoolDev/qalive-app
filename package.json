@@ -7,8 +7,17 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --mode development",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
+    "prisma:generate": "prisma generate",
+    "prisma:push:dev": "dotenv -e .env.development -- prisma db push",
+    "prisma:push:prod": "dotenv -e .env.production -- prisma db push",
+    "prisma:studio:dev": "dotenv -e .env.development -- prisma studio",
+    "prisma:studio:prod": "dotenv -e .env.production -- prisma studio",
+    "prisma:migrate:dev": "dotenv -e .env.development -- prisma migrate dev",
+    "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
+    "prisma:migrate:dev:reset": "dotenv -e .env.development -- prisma migrate reset",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
@@ -17,6 +26,7 @@
     "@chenfengyuan/vue-qrcode": "^2.0.0",
     "@prisma/client": "^6.16.3",
     "@supabase/supabase-js": "^2.74.0",
+    "micro": "^10.0.1",
     "pinia": "^3.0.3",
     "qrcode.vue": "^3.6.0",
     "vue": "^3.5.22",
