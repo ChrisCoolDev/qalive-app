@@ -21,7 +21,7 @@ async function handleUpgrade() {
 
   loading.value = true;
 
-  const response = await fetch("/functions/create-lemon-checkout", {
+  const response = await fetch("/api/create-lemon-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
