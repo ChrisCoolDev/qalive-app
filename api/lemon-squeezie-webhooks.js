@@ -4,7 +4,7 @@ import { buffer } from 'micro' // utile pour lire corps brut
 
 const prisma = new PrismaClient()
 
-const LEMON_WEBHOOK_SECRET = import.meta.env.LEMON_WEBHOOK_SECRET
+const LEMON_WEBHOOK_SECRET = process.env.LEMON_WEBHOOK_SECRET
 
 export const config = {
   api: {

@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${import.meta.env.LEMON_WEBHOOK_SECRET}`,
+        Authorization: `Bearer ${process.env.LEMON_WEBHOOK_SECRET}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
