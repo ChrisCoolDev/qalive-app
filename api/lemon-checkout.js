@@ -50,7 +50,7 @@ export default async function handler(req, res) {
             },
             product_options: {
               redirect_url:
-                'qalive-app-git-develop-chriscooldevs-projects.vercel.app/?success=true',
+                'https://qalive-app-git-develop-chriscooldevs-projects.vercel.app/?success=true',
             },
           },
           relationships: {
