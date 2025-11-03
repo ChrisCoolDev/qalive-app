@@ -1,92 +1,92 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
-import { supabase } from "@/lib/supabase";
-import AppLayout from "@/components/layouts/AppLayout.vue";
-import { formatTimeLocal } from "@/utils/dateHelper";
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+import AppLayout from '@/components/layouts/AppLayout.vue'
+import { formatTimeLocal } from '@/utils/dateHelper'
 
-const route = useRoute();
-const sessionSlug = route.params.slug;
+const route = useRoute()
+const sessionSlug = route.params.slug
 
-const questionText = ref("");
-const authorName = ref("");
-const loading = ref(false);
-const errorMsg = ref("");
-const successMsg = ref("");
-const sessionExpired = ref(false);
-const loadingPage = ref(true);
+const questionText = ref('')
+const authorName = ref('')
+const loading = ref(false)
+const errorMsg = ref('')
+const successMsg = ref('')
+const sessionExpired = ref(false)
+const loadingPage = ref(true)
 
-const sessionId = ref(null); // Ajoute cette ref
+const sessionId = ref(null) // Ajoute cette ref
 
 const submitQuestion = async () => {
-  errorMsg.value = "";
-  successMsg.value = "";
-  loading.value = true;
+  errorMsg.value = ''
+  successMsg.value = ''
+  loading.value = true
 
   if (sessionExpired.value) {
-    errorMsg.value = "Impossible de soumettre, la session est terminée.";
-    loading.value = false; // ⚠️ N'oublie pas de remettre loading à false
-    return;
+    errorMsg.value = 'Impossible de soumettre, la session est terminée.'
+    loading.value = false // ⚠️ N'oublie pas de remettre loading à false
+    return
   }
   if (!questionText.value.trim()) {
-    errorMsg.value = "Merci de saisir votre question";
-    loading.value = false;
-    return;
+    errorMsg.value = 'Merci de saisir votre question'
+    loading.value = false
+    return
   }
 
-  const { error } = await supabase.from("questions").insert([
+  const { error } = await supabase.from('questions').insert([
     {
       content: questionText.value,
       author_name: authorName.value || null,
       session_id: sessionId.value, // ✅ Utilise session_id au lieu de session_slug
     },
-  ]);
+  ])
 
-  loading.value = false;
+  loading.value = false
 
   if (error) {
-    errorMsg.value = error.message;
+    errorMsg.value = error.message
   } else {
-    successMsg.value = "Your question was sent successfully!";
-    questionText.value = "";
-    authorName.value = "";
+    successMsg.value = 'Your question was sent successfully!'
+    questionText.value = ''
+    authorName.value = ''
 
     setTimeout(() => {
-      successMsg.value = "";
-    }, 3000);
+      successMsg.value = ''
+    }, 3000)
   }
-};
+}
 
 onMounted(async () => {
   const { data: session, error } = await supabase
-    .from("sessions")
-    .select("id, expires_at")
-    .eq("slug", sessionSlug)
-    .single();
+    .from('sessions')
+    .select('id, expires_at')
+    .eq('slug', sessionSlug)
+    .single()
 
   if (error || !session) {
-    errorMsg.value = "This session doesn't exist.";
-    sessionExpired.value = true;
+    errorMsg.value = "This session doesn't exist."
+    sessionExpired.value = true
   } else {
     // ✅ Parse la date d'expiration (en UTC depuis Supabase)
-    const expiresAt = formatTimeLocal(session.expires_at);
-    const now = new Date();
-    const localHour = now.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const expiresAt = formatTimeLocal(session.expires_at)
+    const now = new Date()
+    const localHour = now.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
 
     // ✅ Compare en heure local
     if (expiresAt < localHour) {
-      errorMsg.value = "This questions session is over";
-      sessionExpired.value = true;
+      errorMsg.value = 'This questions session is over'
+      sessionExpired.value = true
     } else {
-      sessionId.value = session.id;
+      sessionId.value = session.id
     }
   }
 
-  loadingPage.value = false;
-});
+  loadingPage.value = false
+})
 </script>
 
 <template>
@@ -126,13 +126,7 @@ onMounted(async () => {
                 d="M46.0605 133.709C28.6189 119.724 70.3254 112.613 93.3528 111.11C93.8201 111.079 94.2328 111.387 94.3684 111.835C101.29 134.713 118.865 143.998 126.92 146.225C107.649 148.145 63.7026 147.854 46.0605 133.709Z"
                 fill="black"
               />
-              <circle
-                cx="144.404"
-                cy="96.7561"
-                r="46.2839"
-                stroke="black"
-                stroke-width="2"
-              />
+              <circle cx="144.404" cy="96.7561" r="46.2839" stroke="black" stroke-width="2" />
               <path
                 d="M144.404 44.5117C173.258 44.5118 196.648 67.9023 196.648 96.7559C196.648 125.609 173.258 149 144.404 149C115.551 149 92.1602 125.609 92.1602 96.7559C92.1602 67.9023 115.551 44.5117 144.404 44.5117Z"
                 stroke="black"
@@ -251,14 +245,8 @@ onMounted(async () => {
                 ></textarea>
               </div>
               <div>
-                <label class="block text-sm mb-[6px] text-gray-500"
-                  >Your name (optional) :</label
-                >
-                <input
-                  v-model="authorName"
-                  class="w-full p-2 border rounded"
-                  :disabled="loading"
-                />
+                <label class="block text-sm mb-[6px] text-gray-500">Your name (optional) :</label>
+                <input v-model="authorName" class="w-full p-2 border rounded" :disabled="loading" />
               </div>
             </div>
 
@@ -267,7 +255,7 @@ onMounted(async () => {
               class="w-full py-3 px-4 bg-black text-white rounded-[4px] text-sm"
               :disabled="loading"
             >
-              {{ loading ? "Envoi..." : "Envoyer ma question" }}
+              {{ loading ? 'Submitting...' : 'Submit question' }}
             </button>
           </form>
         </div>
