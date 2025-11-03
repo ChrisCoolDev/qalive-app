@@ -274,11 +274,11 @@ const sessionExpiration = (date) => {
             <p class="text-[14px] text-gray-700">{{ errorUpgradeMessage }}</p>
             <!-- PAR -->
             <button
-              @click.prevent="handleUpgrade"
-              href="#"
-              class="underline text-[13px] cursor-pointer hover:text-purple-600"
+              type="submit"
+              class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
+              @click="handleUpgrade"
             >
-              Upgrade to a premium plan !
+              Upgrade now
             </button>
           </div>
         </div>

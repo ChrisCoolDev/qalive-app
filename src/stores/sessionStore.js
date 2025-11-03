@@ -206,7 +206,7 @@ export const useSessionStore = defineStore('session', () => {
     }
 
     loading.value = true
-    errorUpgradeMessage.value = ''
+    showModal.value = false
 
     try {
       const response = await fetch('/api/lemon-checkout', {
