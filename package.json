@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@chenfengyuan/vue-qrcode": "^2.0.0",
+    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@prisma/client": "^6.16.3",
     "@supabase/supabase-js": "^2.74.0",
     "micro": "^10.0.1",

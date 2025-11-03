@@ -1,44 +1,15 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
-import AppLayout from "@/components/layouts/AppLayout.vue";
-import { storeToRefs } from "pinia";
-import { useSessionStore } from "@/stores/sessionStore";
-import CreateSessionModal from "@/components/basis/CreateSessionModal.vue";
-import DashboardCard from "@/components/basis/dashboardCard.vue";
-import { useAuthSotre } from "@/stores/authStore";
-import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
+import { computed, onMounted } from 'vue'
+import AppLayout from '@/components/layouts/AppLayout.vue'
+import { storeToRefs } from 'pinia'
+import { useSessionStore } from '@/stores/sessionStore'
+import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
+import DashboardCard from '@/components/basis/dashboardCard.vue'
+import { useAuthSotre } from '@/stores/authStore'
+import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
 
-const sessionStore = useSessionStore();
-const authStore = useAuthSotre();
-
-async function handleUpgrade() {
-  if (!user.value) {
-    alert("Please login first.");
-    return;
-  }
-
-  const variantId = 12345; // Remplace par l’ID variant Lemon Squeezy de ton abonnement
-
-  loading.value = true;
-
-  const response = await fetch("/api/create-lemon-checkout", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: user.value.id,
-      variantId,
-    }),
-  });
-
-  const data = await response.json();
-  loading.value = false;
-
-  if (data.checkoutUrl) {
-    window.location.href = data.checkoutUrl; // Redirige le client vers la page Lemon Squeezy
-  } else {
-    alert(data.error || "Failed to create checkout link.");
-  }
-}
+const sessionStore = useSessionStore()
+const authStore = useAuthSotre()
 
 const {
   sessions,
@@ -53,66 +24,66 @@ const {
   errorUpgradeMessage,
   totalPages,
   user,
-} = storeToRefs(sessionStore);
+} = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage } = sessionStore;
+const { fetchDashboardData, nextPage, prevPage, handleUpgrade } = sessionStore
 
-const { logout } = authStore;
+const { logout } = authStore
 
 const handleLogout = async () => {
-  const success = await logout();
+  const success = await logout()
   if (success) {
-    window.location.href = `/login`;
+    window.location.href = `/login`
   }
-};
+}
 
 function openModal() {
-  showModal.value = true;
+  showModal.value = true
 }
 
 onMounted(async () => {
   if (window.location.hash) {
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    history.replaceState(null, '', window.location.pathname + window.location.search)
   }
-  await fetchDashboardData();
-});
+  await fetchDashboardData()
+})
 
 const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`;
-};
+  window.location.href = `/session/${sessionSlug}`
+}
 
 const dashboardInformations = computed(() => [
   {
-    name: "Total events",
+    name: 'Total events',
     label: "All the sessions you've launched so far.",
     statistic: totalSessions,
-    imagePath: "/illustrations/totalevents.svg",
+    imagePath: '/illustrations/totalevents.svg',
   },
   {
-    name: "Total questions attempted",
+    name: 'Total questions attempted',
     label: "Your audience's total engagement.",
     statistic: totalQuestions,
-    imagePath: "/illustrations/totalquestions.svg",
+    imagePath: '/illustrations/totalquestions.svg',
   },
   {
-    name: "Active events",
-    label: "Sessions that are currently open for questions.",
+    name: 'Active events',
+    label: 'Sessions that are currently open for questions.',
     statistic: activeSessions,
-    imagePath: "/illustrations/activeevents.svg",
+    imagePath: '/illustrations/activeevents.svg',
   },
-]);
+])
 
 const getHourFromDate = (dateStr) => {
-  const dateObj = new Date(dateStr);
-  return dateObj.getHours(); // renvoie un entier entre 0 et 23
-};
+  const dateObj = new Date(dateStr)
+  return dateObj.getHours() // renvoie un entier entre 0 et 23
+}
 
 const sessionExpiration = (date) => {
-  if (!date) return false; // gestion si date est null
-  const expiresHour = getHourFromDate(date);
-  const localHourInt = new Date().getHours();
-  return expiresHour < localHourInt;
-};
+  if (!date) return false // gestion si date est null
+  const expiresHour = getHourFromDate(date)
+  const localHourInt = new Date().getHours()
+  return expiresHour < localHourInt
+}
 </script>
 
 <template>
@@ -164,16 +135,10 @@ const sessionExpiration = (date) => {
       </div>
 
       <!-- Affichage conditionnel -->
-      <div
-        v-if="loading && sessions.length === 0"
-        class="text-center text-gray-500 py-10 text-sm"
-      >
+      <div v-if="loading && sessions.length === 0" class="text-center text-gray-500 py-10 text-sm">
         Loading...
       </div>
-      <div
-        v-else-if="errorMsg"
-        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
-      >
+      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
         {{ errorMsg }}
       </div>
 
@@ -210,11 +175,11 @@ const sessionExpiration = (date) => {
                 </td>
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{ session.expires_at ? formatDateLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatDateLocal(session.expires_at) : '-' }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : '-' }}
                   </p>
                 </td>
                 <td class="py-3 text-right px-6">
@@ -226,7 +191,7 @@ const sessionExpiration = (date) => {
                       'px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]',
                     ]"
                   >
-                    {{ sessionExpiration(session.expires_at) ? "active" : "inactive" }}
+                    {{ sessionExpiration(session.expires_at) ? 'active' : 'inactive' }}
                   </span>
                 </td>
               </tr>
@@ -236,7 +201,14 @@ const sessionExpiration = (date) => {
 
         <!--Pagination -->
         <div class="w-full flex items-center justify-between mt-8 mb-[30px]">
-          <a href="/" class="underline text-[13px]">Upgrade to a premium plan !</a>
+          <!-- PAR -->
+          <a
+            @click.prevent="handleUpgrade"
+            href="#"
+            class="underline text-[13px] cursor-pointer hover:text-purple-600"
+          >
+            Upgrade to a premium plan !
+          </a>
           <div class="flex justify-end items-center space-x-4">
             <span class="text-[13px] text-gray-700 leading-[100%]"
               >Page {{ page }} on {{ totalPages }}</span
@@ -290,9 +262,7 @@ const sessionExpiration = (date) => {
           @click.self="showUpgradePlanModal = false"
           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         >
-          <div
-            class="space-y-4 bg-white rounded-[6px] px-6 py-8 max-w-[350px] w-full relative"
-          >
+          <div class="space-y-4 bg-white rounded-[6px] px-6 py-8 max-w-[350px] w-full relative">
             <div
               @click="showUpgradePlanModal = false"
               class="absolute top-3 right-5 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors cursor-pointer"
@@ -302,12 +272,13 @@ const sessionExpiration = (date) => {
             <h2 class="text-lg font-medium text-primary mb-6">Upgrade to premium plan</h2>
 
             <p class="text-[14px] text-gray-700">{{ errorUpgradeMessage }}</p>
+            <!-- PAR -->
             <button
-              type="submit"
-              class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
-              @click="handleUpgrade"
+              @click.prevent="handleUpgrade"
+              href="#"
+              class="underline text-[13px] cursor-pointer hover:text-purple-600"
             >
-              Upgrade now
+              Upgrade to a premium plan !
             </button>
           </div>
         </div>

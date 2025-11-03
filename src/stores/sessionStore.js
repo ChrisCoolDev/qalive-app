@@ -199,6 +199,50 @@ export const useSessionStore = defineStore('session', () => {
     user.value = session?.user ?? null
   })
 
+  async function handleUpgrade() {
+    if (!user.value) {
+      alert('Please login first.')
+      return false
+    }
+
+    loading.value = true
+    errorUpgradeMessage.value = ''
+
+    try {
+      const response = await fetch('/api/lemon-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.value.id,
+          email: user.value.email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout')
+      }
+
+      if (data.checkoutUrl) {
+        // Rediriger vers Lemon Squeezy
+        window.location.href = data.checkoutUrl
+        return true
+      } else {
+        throw new Error('No checkout URL received')
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error)
+      errorUpgradeMessage.value = error.message || 'An error occurred. Please try again.'
+      showUpgradePlanModal.value = true
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     sessions,
     totalSessions,
@@ -226,5 +270,6 @@ export const useSessionStore = defineStore('session', () => {
     nextPage,
     prevPage,
     redirectToSessionQrCode,
+    handleUpgrade,
   }
 })
