@@ -126,6 +126,7 @@ export const useSessionStore = defineStore('session', () => {
         .eq('user_id', user.value.id)
 
       if (count >= 1) {
+        showModal.value = false
         errorUpgradeMessage.value =
           'Limit reached: free users can only create one session. Upgrade to premium to create more.'
         showUpgradePlanModal.value = true
@@ -206,7 +207,6 @@ export const useSessionStore = defineStore('session', () => {
     }
 
     loading.value = true
-    showModal.value = false
 
     try {
       const response = await fetch('/api/lemon-checkout', {
