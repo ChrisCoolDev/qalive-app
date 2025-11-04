@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import AppLayout from '@/components/layouts/AppLayout.vue'
-import { formatTimeLocal } from '@/utils/dateHelper'
 
 const route = useRoute()
 const sessionSlug = route.params.slug
@@ -60,7 +59,7 @@ const submitQuestion = async () => {
 onMounted(async () => {
   const { data: session, error } = await supabase
     .from('sessions')
-    .select('id, expires_at')
+    .select('id, expires_at') // ✅ Récupère created_at au lieu de expires_at
     .eq('slug', sessionSlug)
     .single()
 
@@ -68,16 +67,15 @@ onMounted(async () => {
     errorMsg.value = "This session doesn't exist."
     sessionExpired.value = true
   } else {
-    // ✅ Parse la date d'expiration (en UTC depuis Supabase)
-    const expiresAt = formatTimeLocal(session.expires_at)
+    // ✅ Calcule l'expiration à partir de created_at
+    const expires = new Date(session.expires_at)
+    const expiresAt = new Date(expires.getTime() + 4 * 60 * 60 * 1000) // +4h
     const now = new Date()
-    const localHour = now.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
 
-    // ✅ Compare en heure local
-    if (expiresAt < localHour) {
+    console.log(expires + ' ' + now + ' ' + expiresAt)
+
+    // ✅ Compare les objets Date
+    if (now > expiresAt) {
       errorMsg.value = 'This questions session is over'
       sessionExpired.value = true
     } else {

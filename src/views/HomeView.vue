@@ -1,15 +1,15 @@
 <script setup>
-import { computed, onMounted } from "vue";
-import AppLayout from "@/components/layouts/AppLayout.vue";
-import { storeToRefs } from "pinia";
-import { useSessionStore } from "@/stores/sessionStore";
-import CreateSessionModal from "@/components/basis/CreateSessionModal.vue";
-import DashboardCard from "@/components/basis/dashboardCard.vue";
-import { useAuthSotre } from "@/stores/authStore";
-import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
+import { computed, onMounted, ref } from 'vue'
+import AppLayout from '@/components/layouts/AppLayout.vue'
+import { storeToRefs } from 'pinia'
+import { useSessionStore } from '@/stores/sessionStore'
+import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
+import DashboardCard from '@/components/basis/dashboardCard.vue'
+import { useAuthSotre } from '@/stores/authStore'
+import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
 
-const sessionStore = useSessionStore();
-const authStore = useAuthSotre();
+const sessionStore = useSessionStore()
+const authStore = useAuthSotre()
 
 const {
   sessions,
@@ -22,54 +22,64 @@ const {
   showModal,
   totalPages,
   user,
-} = storeToRefs(sessionStore);
+} = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage } = sessionStore;
+const { fetchDashboardData, nextPage, prevPage } = sessionStore
 
-const { logout } = authStore;
+const { logout } = authStore
 
 const handleLogout = async () => {
-  const success = await logout();
+  const success = await logout()
   if (success) {
-    window.location.href = `/login`;
+    window.location.href = `/login`
   }
-};
+}
 
 function openModal() {
-  showModal.value = true;
+  showModal.value = true
 }
 
 onMounted(async () => {
   if (window.location.hash) {
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    history.replaceState(null, '', window.location.pathname + window.location.search)
   }
-  await fetchDashboardData();
-});
+  await fetchDashboardData()
+})
 
 const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`;
-};
+  window.location.href = `/session/${sessionSlug}`
+}
 
 const dashboardInformations = computed(() => [
   {
-    name: "Total events",
+    name: 'Total events',
     label: "All the sessions you've launched so far.",
     statistic: totalSessions,
-    imagePath: "/illustrations/totalevents.svg",
+    imagePath: '/illustrations/totalevents.svg',
   },
   {
-    name: "Total questions attempted",
+    name: 'Total questions attempted',
     label: "Your audience's total engagement.",
     statistic: totalQuestions,
-    imagePath: "/illustrations/totalquestions.svg",
+    imagePath: '/illustrations/totalquestions.svg',
   },
   {
-    name: "Active events",
-    label: "Sessions that are currently open for questions.",
+    name: 'Active events',
+    label: 'Sessions that are currently open for questions.',
     statistic: activeSessions,
-    imagePath: "/illustrations/activeevents.svg",
+    imagePath: '/illustrations/activeevents.svg',
   },
-]);
+])
+
+const now = ref(new Date())
+
+function localHourEnsured(date) {
+  const expires = new Date(date)
+  const expiresAt = new Date(expires.getTime() + 4 * 60 * 60 * 1000)
+
+  console.log(expiresAt + ' ' + now.value)
+  return expiresAt
+}
 </script>
 
 <template>
@@ -121,16 +131,10 @@ const dashboardInformations = computed(() => [
       </div>
 
       <!-- Affichage conditionnel -->
-      <div
-        v-if="loading && sessions.length === 0"
-        class="text-center text-gray-500 py-10 text-sm"
-      >
+      <div v-if="loading && sessions.length === 0" class="text-center text-gray-500 py-10 text-sm">
         Loading...
       </div>
-      <div
-        v-else-if="errorMsg"
-        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
-      >
+      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
         {{ errorMsg }}
       </div>
 
@@ -167,23 +171,23 @@ const dashboardInformations = computed(() => [
                 </td>
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{ session.expires_at ? formatDateLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatDateLocal(session.expires_at) : '-' }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : '-' }}
                   </p>
                 </td>
                 <td class="py-3 text-right px-6">
                   <span
                     :class="[
-                      session.is_active
+                      now < localHourEnsured(session.expires_at)
                         ? 'bg-[#D9F3DD] text-[#2F8132]'
                         : 'bg-[#FFEAEA] text-[#DF5F5F]',
                     ]"
                     class="px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]"
                   >
-                    {{ session.is_active ? "active" : "inactive" }}
+                    {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
                   </span>
                 </td>
               </tr>
