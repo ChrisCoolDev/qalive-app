@@ -49,8 +49,7 @@ export default async function handler(req, res) {
               },
             },
             product_options: {
-              redirect_url:
-                'https://qalive-app-git-develop-chriscooldevs-projects.vercel.app/?success=true',
+              redirect_url: 'https://test.qalive.ink/?success=true',
             },
           },
           relationships: {
