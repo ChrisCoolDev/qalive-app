@@ -89,7 +89,6 @@ function localHourEnsured(date) {
   const expires = new Date(date)
   const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000)
 
-  console.log(expiresAt + ' ' + now.value)
   return expiresAt
 }
 </script>
