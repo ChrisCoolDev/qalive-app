@@ -7,6 +7,7 @@ import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
 import { useAuthSotre } from '@/stores/authStore'
 import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
+import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 
 const sessionStore = useSessionStore()
 const authStore = useAuthSotre()
@@ -39,47 +40,30 @@ function openModal() {
   showModal.value = true
 }
 
+const redirectToQuestionsView = (sessionSlug) => {
+  window.location.href = `/session/${sessionSlug}`
+}
+
+const dashboardInformations = computed(() =>
+  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
+)
+
+const now = ref(new Date())
+
+function localHourEnsured(date) {
+  const expires = new Date(date)
+  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000)
+
+  console.log(expiresAt + ' ' + now.value)
+  return expiresAt
+}
+
 onMounted(async () => {
   if (window.location.hash) {
     history.replaceState(null, '', window.location.pathname + window.location.search)
   }
   await fetchDashboardData()
 })
-
-const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`
-}
-
-const dashboardInformations = computed(() => [
-  {
-    name: 'Total events',
-    label: "All the sessions you've launched so far.",
-    statistic: totalSessions,
-    imagePath: '/illustrations/totalevents.svg',
-  },
-  {
-    name: 'Total questions attempted',
-    label: "Your audience's total engagement.",
-    statistic: totalQuestions,
-    imagePath: '/illustrations/totalquestions.svg',
-  },
-  {
-    name: 'Active events',
-    label: 'Sessions that are currently open for questions.',
-    statistic: activeSessions,
-    imagePath: '/illustrations/activeevents.svg',
-  },
-])
-
-const now = ref(new Date())
-
-function localHourEnsured(date) {
-  const expires = new Date(date)
-  const expiresAt = new Date(expires.getTime() + 4 * 60 * 60 * 1000)
-
-  console.log(expiresAt + ' ' + now.value)
-  return expiresAt
-}
 </script>
 
 <template>

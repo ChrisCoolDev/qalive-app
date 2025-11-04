@@ -69,7 +69,7 @@ onMounted(async () => {
   } else {
     // ✅ Calcule l'expiration à partir de created_at
     const expires = new Date(session.expires_at)
-    const expiresAt = new Date(expires.getTime() + 4 * 60 * 60 * 1000) // +4h
+    const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000) // +4h
     const now = new Date()
 
     console.log(expires + ' ' + now + ' ' + expiresAt)

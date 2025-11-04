@@ -25,13 +25,14 @@ export const sessionService = {
 
     const sessionsWithCalculatedStatus = sessions.map((session) => {
       // ✅ Parse la date d'expiration (déjà en UTC depuis Supabase)
-      const expiresAt = session.expires_at ? new Date(session.expires_at) : null
+      const expires = new Date(session.expires_at)
+      const expiresAt = expires ? new Date(expires.getTime() + 3 * 60 * 60 * 1000) : null
 
       return {
         ...session,
         questionCount: session.questions[0]?.count || 0,
         // ✅ Compare deux dates UTC
-        is_active: expiresAt ? expiresAt > nowUTC : true,
+        is_active: session.expires_at ? expiresAt > nowUTC : true,
       }
     })
 
@@ -64,7 +65,8 @@ export const sessionService = {
       totalQuestionsCount += session.questions[0]?.count || 0
 
       // ✅ Parse et compare en UTC
-      const expiresAt = session.expires_at ? new Date(session.expires_at) : null
+      const expires = new Date(session.expires_at)
+      const expiresAt = session.expires_at ? new Date(expires.getTime() + 3 * 60 * 60 * 1000) : null
       if (expiresAt ? expiresAt > nowUTC : true) {
         activeSessionsCount++
       }
