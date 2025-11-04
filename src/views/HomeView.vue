@@ -5,12 +5,10 @@ import { storeToRefs } from 'pinia'
 import { useSessionStore } from '@/stores/sessionStore'
 import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
-import { useAuthSotre } from '@/stores/authStore'
 import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
 import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 
 const sessionStore = useSessionStore()
-const authStore = useAuthSotre()
 
 const {
   sessions,
@@ -29,15 +27,6 @@ const {
 
 const { fetchDashboardData, nextPage, prevPage } = sessionStore
 
-const { logout } = authStore
-
-const handleLogout = async () => {
-  const success = await logout()
-  if (success) {
-    window.location.href = `/login`
-  }
-}
-
 function openModal() {
   showModal.value = true
 }
@@ -51,6 +40,10 @@ onMounted(async () => {
 
 const redirectToQuestionsView = (sessionSlug) => {
   window.location.href = `/session/${sessionSlug}`
+}
+
+const redirectToUserProfilePage = () => {
+  window.location.href = '/profile'
 }
 
 const dashboardInformations = computed(() =>
@@ -89,7 +82,11 @@ function localHourEnsured(date) {
 
       <!-- Barre de recherche et filtres -->
       <div class="flex justify-between mb-6">
-        <div class="flex items-center relative" v-if="user && user.user_metadata">
+        <div
+          class="flex items-center relative cursor-pointer"
+          v-if="user && user.user_metadata"
+          @click="redirectToUserProfilePage"
+        >
           <img
             :src="user.user_metadata.picture"
             alt="profile picture of connected user"
@@ -97,15 +94,9 @@ function localHourEnsured(date) {
           />
           <div class="-space-y-0">
             <p class="text-sm leading-[100%]">{{ user.user_metadata.name }}</p>
-
-            <button @click="handleLogout" class="text-[10px] text-red-700 leading-[100%]">
-              Disconnect
-            </button>
-            <!--
             <span class="text-[10px] text-gray-600 leading-[100%]">{{
               user.user_metadata.email
             }}</span>
-            -->
           </div>
         </div>
         <button
