@@ -25,7 +25,7 @@ const {
   user,
 } = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage } = sessionStore
+const { fetchDashboardData, nextPage, prevPage, handleUpgrade } = sessionStore
 
 function openModal() {
   showModal.value = true
