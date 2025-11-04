@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppLayout from '@/components/layouts/AppLayout.vue'
 import { storeToRefs } from 'pinia'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -7,6 +7,7 @@ import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
 import { useAuthSotre } from '@/stores/authStore'
 import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
+import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 
 const sessionStore = useSessionStore()
 const authStore = useAuthSotre()
@@ -26,7 +27,7 @@ const {
   user,
 } = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage, handleUpgrade } = sessionStore
+const { fetchDashboardData, nextPage, prevPage } = sessionStore
 
 const { logout } = authStore
 
@@ -52,37 +53,18 @@ const redirectToQuestionsView = (sessionSlug) => {
   window.location.href = `/session/${sessionSlug}`
 }
 
-const dashboardInformations = computed(() => [
-  {
-    name: 'Total events',
-    label: "All the sessions you've launched so far.",
-    statistic: totalSessions,
-    imagePath: '/illustrations/totalevents.svg',
-  },
-  {
-    name: 'Total questions attempted',
-    label: "Your audience's total engagement.",
-    statistic: totalQuestions,
-    imagePath: '/illustrations/totalquestions.svg',
-  },
-  {
-    name: 'Active events',
-    label: 'Sessions that are currently open for questions.',
-    statistic: activeSessions,
-    imagePath: '/illustrations/activeevents.svg',
-  },
-])
+const dashboardInformations = computed(() =>
+  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
+)
 
-const getHourFromDate = (dateStr) => {
-  const dateObj = new Date(dateStr)
-  return dateObj.getHours() // renvoie un entier entre 0 et 23
-}
+const now = ref(new Date())
 
-const sessionExpiration = (date) => {
-  if (!date) return false // gestion si date est null
-  const expiresHour = getHourFromDate(date)
-  const localHourInt = new Date().getHours()
-  return expiresHour < localHourInt
+function localHourEnsured(date) {
+  const expires = new Date(date)
+  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000)
+
+  console.log(expiresAt + ' ' + now.value)
+  return expiresAt
 }
 </script>
 
@@ -185,13 +167,13 @@ const sessionExpiration = (date) => {
                 <td class="py-3 text-right px-6">
                   <span
                     :class="[
-                      sessionExpiration(session.expires_at)
+                      now < localHourEnsured(session.expires_at)
                         ? 'bg-[#D9F3DD] text-[#2F8132]'
                         : 'bg-[#FFEAEA] text-[#DF5F5F]',
                       'px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]',
                     ]"
                   >
-                    {{ sessionExpiration(session.expires_at) ? 'active' : 'inactive' }}
+                    {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
                   </span>
                 </td>
               </tr>
