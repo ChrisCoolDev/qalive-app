@@ -1,43 +1,43 @@
 // /views/SessionQRCode.vue
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { supabase } from "@/lib/supabase";
-import VueQrcode from "qrcode.vue";
-import AppLayout from "@/components/layouts/AppLayout.vue";
+import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
+import VueQrcode from 'qrcode.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 
-const route = useRoute();
-const router = useRouter();
-const sessionSlug = route.params.slug;
-const session = ref(null);
-const loading = ref(true);
+const route = useRoute()
+const router = useRouter()
+const sessionSlug = route.params.slug
+const session = ref(null)
+const loading = ref(true)
 
 const redirectToQuestionsPage = () => {
-  router.push(`/session/${sessionSlug}`);
-};
+  router.push(`/session/${sessionSlug}`)
+}
 
 const redirectToOverview = () => {
-  router.push("/overview");
-};
+  router.push('/overview')
+}
 
 // L'URL publique pour poser les questions
 const sessionQuestionUrl = computed(() =>
-  sessionSlug ? `${window.location.origin}/ask/${sessionSlug}` : ""
-);
+  sessionSlug ? `${window.location.origin}/ask/${sessionSlug}` : '',
+)
 
 onMounted(async () => {
   // Récupérer les détails de la session
   const { data, error } = await supabase
-    .from("sessions")
-    .select("id, name, expires_at")
-    .eq("slug", sessionSlug)
-    .single();
+    .from('sessions')
+    .select('id, name, expires_at')
+    .eq('slug', sessionSlug)
+    .single()
 
   if (data && !error) {
-    session.value = data;
+    session.value = data
   }
-  loading.value = false;
-});
+  loading.value = false
+})
 </script>
 
 <template>

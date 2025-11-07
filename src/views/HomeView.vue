@@ -1,13 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import AppLayout from '@/components/layouts/AppLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue'
 import { storeToRefs } from 'pinia'
 import { useSessionStore } from '@/stores/sessionStore'
 import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
 import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
 import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
-import { supabase } from '@/lib/supabase'
 
 const sessionStore = useSessionStore()
 
@@ -20,13 +19,11 @@ const {
   loading,
   errorMsg,
   showModal,
-  showUpgradePlanModal,
-  errorUpgradeMessage,
   totalPages,
   user,
 } = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage, handleUpgrade } = sessionStore
+const { fetchDashboardData, nextPage, prevPage } = sessionStore
 
 function openModal() {
   showModal.value = true
@@ -35,37 +32,6 @@ function openModal() {
 onMounted(async () => {
   if (window.location.hash) {
     history.replaceState(null, '', window.location.pathname + window.location.search)
-  }
-
-  // Vérifier si l'utilisateur revient d'un paiement réussi
-  const urlParams = new URLSearchParams(window.location.search)
-  if (urlParams.get('success') === 'true') {
-    // Attendre un peu pour laisser le webhook se traiter
-    await new Promise((resolve) => setTimeout(resolve, 3000))
-
-    // Recharger les données utilisateur
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    if (session?.user) {
-      // Forcer le rafraîchissement du profil
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_premium, plan')
-        .eq('id', session.user.id)
-        .single()
-
-      if (profile?.is_premium) {
-        // Afficher un message de succès
-        alert('Welcome to Premium! 🎉')
-      } else {
-        // Si pas encore premium, peut-être que le webhook est en retard
-        console.log('Payment successful, waiting for webhook processing...')
-      }
-    }
-
-    // Nettoyer l'URL
-    window.history.replaceState({}, '', window.location.pathname)
   }
 
   await fetchDashboardData()
@@ -207,13 +173,7 @@ function localHourEnsured(date) {
         <!--Pagination -->
         <div class="w-full flex items-center justify-between mt-8 mb-[30px]">
           <!-- PAR -->
-          <a
-            @click.prevent="handleUpgrade"
-            href="#"
-            class="underline text-[13px] cursor-pointer hover:text-purple-600"
-          >
-            Upgrade to a premium plan !
-          </a>
+          <p class="text-[13px]">qalive Beta 1.0.1</p>
           <div class="flex justify-end items-center space-x-4">
             <span class="text-[13px] text-gray-700 leading-[100%]"
               >Page {{ page }} on {{ totalPages }}</span
@@ -260,6 +220,7 @@ function localHourEnsured(date) {
         </div>
       </Transition>
     </Teleport>
+    <!--
     <Teleport to="body">
       <Transition name="modal-fade">
         <div
@@ -277,7 +238,6 @@ function localHourEnsured(date) {
             <h2 class="text-lg font-medium text-primary mb-6">Upgrade to premium plan</h2>
 
             <p class="text-[14px] text-gray-700">{{ errorUpgradeMessage }}</p>
-            <!-- PAR -->
             <button
               type="submit"
               class="w-full py-3 px-4 bg-black text-white rounded text-[13px]"
@@ -289,5 +249,6 @@ function localHourEnsured(date) {
         </div>
       </Transition>
     </Teleport>
+    -->
   </AppLayout>
 </template>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import AppLayout from "@/components/layouts/AppLayout.vue";
+import AppLayout from "@/layouts/AppLayout.vue";
 import QuestionCard from "@/components/basis/questionCard.vue";
 import { useQuestionStore } from "@/stores/questionStore";
 import { storeToRefs } from "pinia";
@@ -16,14 +16,14 @@ const { fetchQuestions } = questionStore;
 // États pour le modal
 const selectedQuestion = ref(null);
 const selectedQuestionIndex = ref(null);
-const showModal = ref(false);
+const showQuestionModal = ref(false);
 
 // Ouvre le modal sur la question choisie et sauvegarde son index
 function openQuestionModal(question) {
   const idx = questions.value.findIndex((q) => q.id === question.id);
   selectedQuestionIndex.value = idx;
   selectedQuestion.value = question;
-  showModal.value = true;
+  showQuestionModal.value = true;
 }
 
 // Change la question affichée selon l'index sans dépasser les limites
@@ -36,7 +36,7 @@ function showQuestionByIndex(index) {
 
 // Handler flèches clavier pour navigation
 function handleArrowKey(e) {
-  if (!showModal.value) return;
+  if (!showQuestionModal.value) return;
   if (e.key === "ArrowLeft") {
     showQuestionByIndex(selectedQuestionIndex.value - 1);
   } else if (e.key === "ArrowRight") {
@@ -122,8 +122,8 @@ onUnmounted(() => {
     <Teleport to="body">
       <Transition name="modal-fade">
         <div
-          v-if="showModal"
-          @click.self="showModal = false"
+          v-if="showQuestionModal"
+          @click.self="showQuestionModal = false"
           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         >
           <!-- Contenu du Modal -->
@@ -131,7 +131,7 @@ onUnmounted(() => {
             class="bg-white rounded-md px-8 py-10 max-w-[800px] w-full shadow-2xl relative"
           >
             <button
-              @click="showModal = false"
+              @click="showQuestionModal = false"
               class="absolute top-2 right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
             >
               &times;
@@ -151,7 +151,6 @@ onUnmounted(() => {
 </template>
 
 <style>
-/* Animation pour l'apparition du modal */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
   transition: opacity 0.3s ease;

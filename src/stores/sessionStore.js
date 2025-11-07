@@ -103,7 +103,7 @@ export const useSessionStore = defineStore('session', () => {
       return false
     }
 
-    // Ici, il a droit à 1 session gratuite.
+    /* Ici, il a droit à 1 session gratuite.
     // S'il en a déjà créé 1+ et n'est pas PREMIUM, bloquer :
     // Il te faut un moyen de récupérer le statut premium dans Supabase (profiles/plan)
     const { data: profile, error: profileError } = await supabase
@@ -133,7 +133,7 @@ export const useSessionStore = defineStore('session', () => {
         loading.value = false
         return false
       }
-    }
+    }*/
 
     // Création de session possible…
     // ... ton code habituel ici
@@ -200,6 +200,7 @@ export const useSessionStore = defineStore('session', () => {
     user.value = session?.user ?? null
   })
 
+  /*
   async function handleUpgrade() {
     if (!user.value) {
       alert('Please login first.')
@@ -241,7 +242,7 @@ export const useSessionStore = defineStore('session', () => {
     } finally {
       loading.value = false
     }
-  }
+  }*/
 
   return {
     sessions,
@@ -270,6 +271,6 @@ export const useSessionStore = defineStore('session', () => {
     nextPage,
     prevPage,
     redirectToSessionQrCode,
-    handleUpgrade,
+    //handleUpgrade,
   }
 })
