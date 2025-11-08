@@ -1,14 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { storeToRefs } from 'pinia'
-import { useSessionStore } from '@/stores/sessionStore'
-import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
-import DashboardCard from '@/components/basis/dashboardCard.vue'
-import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
-import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
+import { computed, onMounted, ref } from "vue";
+import AppLayout from "@/layouts/AppLayout.vue";
+import { storeToRefs } from "pinia";
+import { useSessionStore } from "@/stores/sessionStore";
+import CreateSessionModal from "@/components/basis/CreateSessionModal.vue";
+import DashboardCard from "@/components/basis/dashboardCard.vue";
+import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
+import { exposeDashboardaInformations } from "@/datas/dashboardDatas";
 
-const sessionStore = useSessionStore()
+const sessionStore = useSessionStore();
 
 const {
   sessions,
@@ -21,41 +21,41 @@ const {
   showModal,
   totalPages,
   user,
-} = storeToRefs(sessionStore)
+} = storeToRefs(sessionStore);
 
-const { fetchDashboardData, nextPage, prevPage } = sessionStore
+const { fetchDashboardData, nextPage, prevPage } = sessionStore;
 
 function openModal() {
-  showModal.value = true
+  showModal.value = true;
 }
 
 onMounted(async () => {
   if (window.location.hash) {
-    history.replaceState(null, '', window.location.pathname + window.location.search)
+    history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 
-  await fetchDashboardData()
-})
+  await fetchDashboardData();
+});
 
 const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`
-}
+  window.location.href = `/session/${sessionSlug}`;
+};
 
 const redirectToUserProfilePage = () => {
-  window.location.href = '/profile'
-}
+  window.location.href = "/profile";
+};
 
 const dashboardInformations = computed(() =>
-  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
-)
+  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions)
+);
 
-const now = ref(new Date())
+const now = ref(new Date());
 
 function localHourEnsured(date) {
-  const expires = new Date(date)
-  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000)
+  const expires = new Date(date);
+  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000);
 
-  return expiresAt
+  return expiresAt;
 }
 </script>
 
@@ -79,7 +79,7 @@ function localHourEnsured(date) {
       </div>
 
       <!-- Barre de recherche et filtres -->
-      <div class="flex justify-between mb-6">
+      <div class="flex justify-between mb-6 items-center">
         <div
           class="flex items-center relative cursor-pointer"
           v-if="user && user.user_metadata"
@@ -98,7 +98,7 @@ function localHourEnsured(date) {
           </div>
         </div>
         <button
-          class="text-center px-[12px] font-medium py-1 text-[12px] leading-[100%] text-white bg-black rounded-[4px]"
+          class="text-center px-[12px] font-medium py-[10px] text-[12px] leading-[100%] text-white bg-black rounded-[4px]"
           @click="openModal"
         >
           New event
@@ -106,10 +106,16 @@ function localHourEnsured(date) {
       </div>
 
       <!-- Affichage conditionnel -->
-      <div v-if="loading && sessions.length === 0" class="text-center text-gray-500 py-10 text-sm">
+      <div
+        v-if="loading && sessions.length === 0"
+        class="text-center text-gray-500 py-10 text-sm"
+      >
         Loading...
       </div>
-      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
+      <div
+        v-else-if="errorMsg"
+        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
+      >
         {{ errorMsg }}
       </div>
 
@@ -146,11 +152,11 @@ function localHourEnsured(date) {
                 </td>
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{ session.expires_at ? formatDateLocal(session.expires_at) : '-' }}
+                    {{ session.expires_at ? formatDateLocal(session.expires_at) : "-" }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : '-' }}
+                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : "-" }}
                   </p>
                 </td>
                 <td class="py-3 text-right px-6">
@@ -162,7 +168,9 @@ function localHourEnsured(date) {
                       'px-3 py-1 rounded-full text-[11px] font-medium leading-[100%]',
                     ]"
                   >
-                    {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
+                    {{
+                      now < localHourEnsured(session.expires_at) ? "active" : "inactive"
+                    }}
                   </span>
                 </td>
               </tr>
