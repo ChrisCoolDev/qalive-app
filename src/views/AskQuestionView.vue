@@ -262,7 +262,7 @@ onMounted(async () => {
 
             <button
               type="submit"
-              class="w-full py-3 px-4 bg-black text-white rounded-[4px] text-sm"
+              class="w-full py-3 px-4 bg-[#E85D4A] text-white rounded-[4px] text-sm"
               :disabled="loading"
             >
               {{ loading ? "Submitting..." : "Submit question" }}

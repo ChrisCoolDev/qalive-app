@@ -20,7 +20,7 @@ const formattedTime = computed(() => {
 
 <template>
   <div
-    class="border border-gray-300 p-4 space-y-2 rounded-[6px] bg-white cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-300"
+    class="border border-[#E6E6E6] p-4 space-y-2 rounded-[6px] bg-white cursor-pointer hover:shadow-md hover:scale-105 transition-all duration-300"
   >
     <p class="text-xs text-gray-500">{{ formattedTime }}</p>
 

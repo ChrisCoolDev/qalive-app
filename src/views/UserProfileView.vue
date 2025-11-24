@@ -20,6 +20,10 @@ const handleLogout = async () => {
     window.location.href = `/login`;
   }
 };
+
+const redirectToEmailAddress = () => {
+  window.location.href = "mailto:talchrist10@gmail.com";
+};
 </script>
 
 <template>
@@ -30,7 +34,7 @@ const handleLogout = async () => {
           <img
             :src="user.user_metadata.picture"
             alt="profile picture of connected user"
-            class="w-9 h-9 rounded-full border border-[#7738C7] mr-2"
+            class="w-9 h-9 rounded-[4px] mr-2 border border-[#E85D4A]"
           />
           <div class="space-y-1">
             <p class="leading-[100%] text-sm">
@@ -49,7 +53,7 @@ const handleLogout = async () => {
         <section>
           <h2 class="mb-3">Account</h2>
           <div
-            class="border border-[#C8C8C8] rounded-[4px] w-full divide-y divide-[#C8C8C8]"
+            class="border border-[#E6E6E6] rounded-[4px] w-full divide-y divide-[#E6E6E6]"
           >
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600">Username</p>
@@ -64,7 +68,7 @@ const handleLogout = async () => {
         <section class="mt-5">
           <h2 class="mb-3">Appearance</h2>
           <div
-            class="border border-[#C8C8C8] rounded-[4px] w-full divide-y divide-[#C8C8C8]"
+            class="border border-[#E6E6E6] rounded-[4px] w-full divide-y divide-[#E6E6E6]"
           >
             <div class="px-4 flex justify-between items-end py-4">
               <div class="flex items-center space-x-2">
@@ -85,7 +89,7 @@ const handleLogout = async () => {
         <section class="mt-5">
           <h2 class="mb-3">Usage</h2>
           <div
-            class="border border-[#C8C8C8] rounded-[4px] w-full divide-y divide-[#C8C8C8]"
+            class="border border-[#E6E6E6] rounded-[4px] w-full divide-y divide-[#E6E6E6]"
           >
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600">Current Plan</p>
@@ -97,25 +101,28 @@ const handleLogout = async () => {
             </div>
           </div>
         </section>
+
         <section class="mt-5">
-          <h2 class="mb-3">Delete Account</h2>
-          <div class="border border-[#C8C8C8] rounded-[4px] w-full">
+          <h2 class="mb-3">Support</h2>
+          <div class="border border-[#E6E6E6] rounded-[4px] w-full">
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600 max-w-sm">
-                Permanently delete your account and all its associeted data, this action
-                cannot be undone.
+                Our app is currently under development. If you encounter any bugs or
+                unexpected behavior, please don't hesitate to contact us. We appreciate
+                your feedback and patience. Thank you!
               </p>
               <button
-                class="text-[12px] py-1 px-2 border border-red-800 rounded-[4px] bg-red-700 text-white"
+                class="text-[12px] py-1 px-2 rounded-[4px] bg-[#E85D4A] text-white"
+                @click="redirectToEmailAddress"
               >
-                Delete Account
+                Contact support
               </button>
             </div>
           </div>
         </section>
       </div>
       <div>
-        <p class="text-center my-8 text-[12px] text-gray-500">Version 1.0.1</p>
+        <p class="text-center my-8 text-[12px] text-gray-500">Version 2.0.1</p>
       </div>
     </div>
   </div>

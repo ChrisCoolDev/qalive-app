@@ -8,6 +8,10 @@ export const useQuestionStore = defineStore('question', () => {
   const loading = ref(true)
   const errorMsg = ref('')
 
+  // 🆕 Variable pour stocker le canal de subscription
+  let realtimeChannel = null
+
+  // Fonction existante : récupère les questions initiales
   async function fetchQuestions(sessionSlug) {
     try {
       const { data: sessionData, error: sessionError } = await supabase
@@ -24,7 +28,7 @@ export const useQuestionStore = defineStore('question', () => {
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
-        .eq('session_id', sessionData.id) // utilise l’id récupéré via le slug
+        .eq('session_id', sessionData.id)
         .order('created_at', { ascending: false })
 
       if (questionsError) throw questionsError
@@ -36,6 +40,45 @@ export const useQuestionStore = defineStore('question', () => {
     }
   }
 
+  // 🆕 Fonction pour s'abonner aux nouvelles questions en temps réel
+  function subscribeToQuestions(sessionId) {
+    // Si un canal existe déjà, le nettoyer d'abord
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel)
+    }
+
+    // Créer un nouveau canal pour écouter les INSERT sur la table questions
+    realtimeChannel = supabase
+      .channel(`questions:session_${sessionId}`) // Nom unique du canal
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT', // On écoute uniquement les nouvelles insertions
+          schema: 'public',
+          table: 'questions',
+          filter: `session_id=eq.${sessionId}`, // Filtre sur la session courante
+        },
+        (payload) => {
+          console.log('📩 Nouvelle question reçue:', payload.new)
+
+          // Ajouter la nouvelle question au début du tableau
+          questions.value.unshift(payload.new)
+        },
+      )
+      .subscribe((status) => {
+        console.log('📡 Statut de la subscription:', status)
+      })
+  }
+
+  // 🆕 Fonction pour se désabonner (nettoyage)
+  function unsubscribeFromQuestions() {
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel)
+      realtimeChannel = null
+      console.log('🔌 Déconnexion du canal temps réel')
+    }
+  }
+
   return {
     questions,
     currentSession,
@@ -43,5 +86,7 @@ export const useQuestionStore = defineStore('question', () => {
     loading,
 
     fetchQuestions,
+    subscribeToQuestions, // 🆕 Export
+    unsubscribeFromQuestions, // 🆕 Export
   }
 })

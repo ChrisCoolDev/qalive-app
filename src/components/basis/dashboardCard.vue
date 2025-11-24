@@ -8,16 +8,20 @@ defineProps({
 </script>
 
 <template>
-  <div
-    class="bg-white px-[20px] py-4 rounded-[6px] space-y-2 border border-solid border-[#C9C9C9]"
-  >
-    <div class="flex items-center space-x-[18px]">
-      <img :src="dashboardInformation.imagePath" class="w-7 h-7" alt="Total events" />
-      <div>
-        <p class="text-base font-medium">{{ dashboardInformation.name }}</p>
-        <span class="text-[13px] text-[#5D5D5D]">{{ dashboardInformation.label }}</span>
+  <div class="px-4 py-3 rounded-[6px] space-y-1 border border-solid border-[#E6E6E6]">
+    <div class="flex items-center space-x-[14px]">
+      <div class="flex items-center justify-center p-2 bg-[#F6F5EF] rounded-[6px]">
+        <div v-html="dashboardInformation.icon"></div>
+      </div>
+      <div class="space-y-">
+        <p class="text-[15px] font-medium leading-none">
+          {{ dashboardInformation.name }}
+        </p>
+        <span class="text-[13px] text-[#5D5D5D] leading-none">{{
+          dashboardInformation.label
+        }}</span>
       </div>
     </div>
-    <p class="text-xl font-bold">{{ dashboardInformation.statistic }}</p>
+    <p class="text-md font-bold">{{ dashboardInformation.statistic }}</p>
   </div>
 </template>
