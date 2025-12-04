@@ -11,7 +11,7 @@ const route = useRoute();
 const slug = route.params.slug;
 
 const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore);
-const { fetchQuestions, subscribeToQuestions, unsubscribeFromQuestions } = questionStore; // 🆕
+const { fetchQuestions, subscribeToQuestions, unsubscribeFromQuestions } = questionStore;
 
 // États pour le modal
 const selectedQuestion = ref(null);
@@ -44,7 +44,7 @@ function handleArrowKey(e) {
   }
 }
 
-// 🆕 Initialisation avec temps réel
+// Initialisation avec temps réel
 onMounted(async () => {
   window.addEventListener("keydown", handleArrowKey);
 
@@ -57,20 +57,19 @@ onMounted(async () => {
   }
 });
 
-// 🆕 Nettoyage à la destruction du composant
+// Nettoyage à la destruction du composant
 onUnmounted(() => {
   window.removeEventListener("keydown", handleArrowKey);
-  unsubscribeFromQuestions(); // Important : fermer la connexion WebSocket
+  unsubscribeFromQuestions();
 });
 </script>
 
 <template>
-  <!-- Le reste du template reste identique -->
   <AppLayout>
     <div class="mt-[28px] space-y-6">
       <div class="mb-[35px] space-y-[10px]" v-if="currentSession">
         <div class="flex items-end space-x-2">
-          <h1 class="text-lg font-medium text-primary leading-[100%]">
+          <h1 class="text-base md:text-lg font-medium text-primary leading-[100%]">
             Session : <span class="font-semibold">{{ currentSession.name }}</span>
           </h1>
           <a
@@ -132,7 +131,7 @@ onUnmounted(() => {
 
       <div
         v-else-if="questions.length > 0"
-        class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
       >
         <QuestionCard
           v-for="question in questions"
@@ -143,12 +142,11 @@ onUnmounted(() => {
       </div>
 
       <div v-else class="text-center pt-[70px] flex flex-col items-center space-y-4">
-        <img src="/illustrations/empty1.svg" alt="" />
+        <img src="/illustrations/empty1.svg" alt="" class="max-w-[80%] md:max-w-full" />
         <p class="text-gray-700 text-[13px]">The are no questions yet.</p>
       </div>
     </div>
 
-    <!-- Modal reste identique -->
     <Teleport to="body">
       <Transition name="modal-fade">
         <div
@@ -157,18 +155,18 @@ onUnmounted(() => {
           class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
         >
           <div
-            class="bg-white rounded-md px-8 py-10 max-w-[1025px] w-full shadow-2xl relative"
+            class="bg-white rounded-md px-4 py-6 md:px-8 md:py-10 max-w-[1025px] w-full shadow-2xl relative"
           >
             <button
               @click="showQuestionModal = false"
-              class="absolute top-2 right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
+              class="absolute top-2 right-4 md:right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
             >
               &times;
             </button>
 
             <div v-if="selectedQuestion">
               <h6 class="text-sm mb-2 text-gray-600">Question :</h6>
-              <p class="text-2xl font-light mb-4 leading-[150%]">
+              <p class="text-xl md:text-2xl font-light mb-4 leading-[150%]">
                 {{ selectedQuestion.content }}
               </p>
             </div>

@@ -1,15 +1,15 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { storeToRefs } from 'pinia'
-import { useSessionStore } from '@/stores/sessionStore'
-import { supabase } from '@/lib/supabase'
-import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
-import DashboardCard from '@/components/basis/dashboardCard.vue'
-import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
-import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
+import { computed, onMounted, ref } from "vue";
+import AppLayout from "@/layouts/AppLayout.vue";
+import { storeToRefs } from "pinia";
+import { useSessionStore } from "@/stores/sessionStore";
+import { supabase } from "@/lib/supabase";
+import CreateSessionModal from "@/components/basis/CreateSessionModal.vue";
+import DashboardCard from "@/components/basis/dashboardCard.vue";
+import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
+import { exposeDashboardaInformations } from "@/datas/dashboardDatas";
 
-const sessionStore = useSessionStore()
+const sessionStore = useSessionStore();
 
 const {
   sessions,
@@ -22,97 +22,104 @@ const {
   showModal,
   totalPages,
   user,
-} = storeToRefs(sessionStore)
+} = storeToRefs(sessionStore);
 
-const { fetchDashboardData, nextPage, prevPage } = sessionStore
+const { fetchDashboardData, nextPage, prevPage } = sessionStore;
 
 // État pour la recherche
-const searchQuery = ref('')
-const allSessions = ref([])
+const searchQuery = ref("");
+const allSessions = ref([]);
 
 // Sessions filtrées basées sur la recherche
 const filteredSessions = computed(() => {
   if (!searchQuery.value.trim()) {
-    return sessions.value
+    return sessions.value;
   }
 
-  const query = searchQuery.value.toLowerCase().trim()
-  return allSessions.value.filter((session) => session.name.toLowerCase().includes(query))
-})
+  const query = searchQuery.value.toLowerCase().trim();
+  return allSessions.value.filter((session) =>
+    session.name.toLowerCase().includes(query)
+  );
+});
 
 // Afficher un message si aucune session ne correspond à la recherche
 const showNoResults = computed(() => {
-  return searchQuery.value.trim() && filteredSessions.value.length === 0
-})
+  return searchQuery.value.trim() && filteredSessions.value.length === 0;
+});
 
 // Afficher le tableau si on a des sessions ou des résultats de recherche
 const showTable = computed(() => {
-  return totalSessions.value > 0 && !showNoResults.value
-})
+  return totalSessions.value > 0 && !showNoResults.value;
+});
 
 function openModal() {
-  showModal.value = true
+  showModal.value = true;
 }
 
 // Charger toutes les sessions pour la recherche
 async function loadAllSessions() {
   try {
     const { data, error } = await supabase
-      .from('sessions')
-      .select('*, questions(id)')
-      .eq('user_id', user.value.id)
-      .order('created_at', { ascending: false })
+      .from("sessions")
+      .select("*, questions(id)")
+      .eq("user_id", user.value.id)
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
+    if (error) throw error;
 
     allSessions.value = data.map((session) => ({
       ...session,
       questionCount: session.questions?.length || 0,
-    }))
+    }));
   } catch (err) {
-    console.error('Error loading all sessions:', err)
+    console.error("Error loading all sessions:", err);
   }
 }
 
 onMounted(async () => {
   if (window.location.hash) {
-    history.replaceState(null, '', window.location.pathname + window.location.search)
+    history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 
-  await fetchDashboardData()
-  await loadAllSessions()
-})
+  await fetchDashboardData();
+  await loadAllSessions();
+});
 
 const redirectToQuestionsView = (sessionSlug) => {
-  window.location.href = `/session/${sessionSlug}`
-}
+  window.location.href = `/session/${sessionSlug}`;
+};
 
 const redirectToUserProfilePage = () => {
-  window.location.href = '/profile'
-}
+  window.location.href = "/profile";
+};
 
 const dashboardInformations = computed(() =>
-  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
-)
+  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions)
+);
 
-const now = ref(new Date())
+const now = ref(new Date());
 
 function localHourEnsured(date) {
-  const expires = new Date(date)
-  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000)
-  return expiresAt
+  const expires = new Date(date);
+  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000);
+  return expiresAt;
 }
 </script>
 
 <template>
   <AppLayout>
-    <div class="mt-[28px]">
-      <div class="mb-[35px] flex items-center justify-between" v-if="user && user.user_metadata">
+    <div class="mt-[28px] md:px-0">
+      <div
+        class="mb-[35px] flex items-center justify-between"
+        v-if="user && user.user_metadata"
+      >
         <div class="space-y-1">
           <h1 class="text-lg font-medium text-primary">
-            🌤️ Hi {{ user.user_metadata.name.split(' ')[0] }},
+            🌤️ Hi {{ user.user_metadata.name.split(" ")[0] }},
           </h1>
-          <p class="text-[14px] text-[#777] font-mabry">Track your audience engagement.</p>
+          <p class="text-[14px] text-[#777] font-mabry">
+            Track your audience engagement.
+          </p>
         </div>
         <div class="cursor-pointer" @click="redirectToUserProfilePage">
           <img
@@ -123,8 +130,9 @@ function localHourEnsured(date) {
         </div>
       </div>
 
-      <!-- Cartes du Dashboard -->
-      <div class="grid grid-cols-3 gap-x-[12px] mb-[45px]">
+      <div
+        class="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-y-0 md:gap-x-[12px] mb-[45px]"
+      >
         <DashboardCard
           v-for="(information, index) in dashboardInformations"
           :key="index"
@@ -132,14 +140,14 @@ function localHourEnsured(date) {
         />
       </div>
 
-      <!-- Barre de recherche et button new session -->
-      <div class="flex justify-between mb-6 items-center">
-        <!-- Barre de recherche -->
+      <div
+        class="flex flex-col md:flex-row justify-between mb-6 items-start md:items-center space-y-4 md:space-y-0"
+      >
         <div
-          class="py-[6px] px-2 w-max border border-[#E6E6E6] bg-gray-50 flex space-x-2 items-center rounded-[4px]"
+          class="py-[6px] px-2 w-full md:w-max border border-[#E6E6E6] bg-gray-50 flex space-x-2 items-center rounded-[4px]"
         >
           <svg
-            class="group"
+            class="group flex-shrink-0"
             width="18"
             height="18"
             viewBox="0 0 24 24"
@@ -165,23 +173,29 @@ function localHourEnsured(date) {
             v-model="searchQuery"
             type="text"
             placeholder="Search sessions..."
-            class="bg-transparent outline-none text-[13px] text-[#161924] placeholder-gray-400 w-[200px]"
+            class="bg-transparent outline-none text-[13px] text-[#161924] placeholder-gray-400 w-full md:w-[200px]"
           />
         </div>
+
         <button
-          class="text-center px-[12px] font-medium py-[10px] text-[12px] leading-[100%] text-white bg-[#E85D4A] rounded-[4px]"
+          class="text-center px-[12px] font-medium py-[10px] text-[12px] leading-[100%] text-white bg-[#E85D4A] rounded-[4px] w-full md:w-auto"
           @click="openModal"
         >
           New session
         </button>
       </div>
 
-      <!-- Affichage conditionnel -->
-      <div v-if="loading && sessions.length === 0" class="text-center text-gray-500 py-10 text-sm">
+      <div
+        v-if="loading && sessions.length === 0"
+        class="text-center text-gray-500 py-10 text-sm"
+      >
         Loading...
       </div>
 
-      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
+      <div
+        v-else-if="errorMsg"
+        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
+      >
         {{ errorMsg }}
       </div>
 
@@ -189,19 +203,17 @@ function localHourEnsured(date) {
         v-else-if="totalSessions === 0"
         class="text-center flex flex-col items-center space-y-4 text-gray-500 pt-[70px]"
       >
-        <img src="/illustrations/empty2.svg" alt="" />
+        <img src="/illustrations/empty2.svg" alt="" class="max-w-[80%] md:max-w-full" />
         <p class="text-[13px]">You didn't create an event yet</p>
       </div>
 
-      <!-- Message si aucun résultat de recherche -->
       <div v-else-if="showNoResults" class="text-center text-gray-500 py-10 text-sm">
         No sessions found matching
       </div>
 
-      <!-- Tableau des sessions -->
       <div v-else-if="showTable">
         <div class="overflow-x-auto rounded-[4px] border border-[#E6E6E6]">
-          <table class="w-full divide-y divide-[#E6E6E6] text-left">
+          <table class="w-full divide-y divide-[#E6E6E6] text-left min-w-[600px]">
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
                 <th scope="col" class="py-3 px-6 font-medium">Event name</th>
@@ -231,17 +243,19 @@ function localHourEnsured(date) {
                 </td>
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{ session.expires_at ? formatDateLocal(session.expires_at) : '-' }}
+                    {{ session.expires_at ? formatDateLocal(session.expires_at) : "-" }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : '-' }}
+                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : "-" }}
                   </p>
                 </td>
                 <td class="py-3 flex justify-end items-center px-6">
                   <div
                     :class="[
-                      now < localHourEnsured(session.expires_at) ? 'bg-[#D9F3DD]' : 'bg-gray-100',
+                      now < localHourEnsured(session.expires_at)
+                        ? 'bg-[#D9F3DD]'
+                        : 'bg-gray-100',
                       'px-2 py-1 rounded-[4px] w-max mt-2',
                     ]"
                   >
@@ -253,7 +267,9 @@ function localHourEnsured(date) {
                         'text-[11px] font-medium leading-none mb-[2px]',
                       ]"
                     >
-                      {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
+                      {{
+                        now < localHourEnsured(session.expires_at) ? "active" : "inactive"
+                      }}
                     </p>
                   </div>
                 </td>
@@ -262,9 +278,10 @@ function localHourEnsured(date) {
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div class="w-full flex items-center justify-between mt-8 mb-[30px]">
-          <p class="text-[13px]">qalive 2.0.1</p>
+        <div
+          class="w-full flex flex-row items-center justify-between mt-8 mb-[30px] gap-4 sm:gap-0"
+        >
+          <p class="text-[13px]">qalive 2.1.1</p>
           <div class="flex justify-end items-center space-x-4">
             <span class="text-[13px] text-gray-700 leading-[100%]"
               >Page {{ page }} on {{ totalPages }}</span
@@ -292,7 +309,6 @@ function localHourEnsured(date) {
       </div>
     </div>
 
-    <!-- Modal avec overlay -->
     <Teleport to="body">
       <Transition name="modal-fade">
         <div
