@@ -122,7 +122,7 @@ const redirectToEmailAddress = () => {
         </section>
       </div>
       <div>
-        <p class="text-center my-8 text-[12px] text-gray-500">Version 2.0.1</p>
+        <p class="text-center my-8 text-[12px] text-gray-500">Version 2.1.1</p>
       </div>
     </div>
   </div>
