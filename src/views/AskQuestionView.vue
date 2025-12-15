@@ -59,7 +59,7 @@ const submitQuestion = async () => {
 onMounted(async () => {
   const { data: session, error } = await supabase
     .from("sessions")
-    .select("id, expires_at") // ✅ Récupère created_at au lieu de expires_at
+    .select("id, expires_at")
     .eq("slug", sessionSlug)
     .single();
 
@@ -67,14 +67,26 @@ onMounted(async () => {
     errorMsg.value = "This session doesn't exist.";
     sessionExpired.value = true;
   } else {
-    // ✅ Calcule l'expiration à partir de created_at
-    const expires = new Date(session.expires_at);
-    const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000); // +4h
+    // 1. On nettoie la date reçue de Supabase pour s'assurer qu'elle est bien en UTC
+    let dateString = session.expires_at;
+    if (typeof dateString === "string" && !dateString.endsWith("Z")) {
+      dateString = dateString.replace(" ", "T") + "Z";
+    }
+
+    // 2. On crée l'objet Date
+    // new Date() va automatiquement la convertir en heure locale du navigateur pour l'affichage
+    const expiresAt = new Date(dateString);
     const now = new Date();
 
-    console.log(expires + " " + now + " " + expiresAt);
+    // Pour le debug : affichera l'heure locale de l'utilisateur
+    console.log(
+      "Fin prévue (LocaL): " +
+        expiresAt.toLocaleString() +
+        " | Maintenant: " +
+        now.toLocaleString()
+    );
 
-    // ✅ Compare les objets Date
+    // 3. Comparaison simple
     if (now > expiresAt) {
       errorMsg.value = "This questions session is over";
       sessionExpired.value = true;
@@ -232,7 +244,7 @@ onMounted(async () => {
           <div>
             <h1 class="text-xxl font-semibold mb-2">Ask your questions</h1>
             <p class="text-sm text-gray-600">
-              You can all the questions you want during the persentation
+              You can ask the questions you want during the persentation
             </p>
           </div>
 

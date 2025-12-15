@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
 import { storeToRefs } from "pinia";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -83,6 +83,10 @@ onMounted(async () => {
 
   await fetchDashboardData();
   await loadAllSessions();
+
+  timer = setInterval(() => {
+    now.value = new Date();
+  }, 60000);
 });
 
 const redirectToQuestionsView = (sessionSlug) => {
@@ -98,12 +102,23 @@ const dashboardInformations = computed(() =>
 );
 
 const now = ref(new Date());
+let timer;
 
-function localHourEnsured(date) {
-  const expires = new Date(date);
-  const expiresAt = new Date(expires.getTime() + 3 * 60 * 60 * 1000);
-  return expiresAt;
+function localHourEnsured(dateString) {
+  if (!dateString) return new Date(0); // Sécurité si date nulle
+
+  // 1. On force le format UTC si le "Z" manque (comme dans l'autre fichier)
+  if (typeof dateString === "string" && !dateString.endsWith("Z")) {
+    dateString = dateString.replace(" ", "T") + "Z";
+  }
+
+  // 2. On retourne simplement la date (le navigateur la mettra en heure locale)
+  return new Date(dateString);
 }
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
 </script>
 
 <template>
@@ -279,6 +294,7 @@ function localHourEnsured(date) {
         </div>
 
         <div
+          v-if="!searchQuery"
           class="w-full flex flex-row items-center justify-between mt-8 mb-[30px] gap-4 sm:gap-0"
         >
           <p class="text-[13px]">qalive 2.1.1</p>

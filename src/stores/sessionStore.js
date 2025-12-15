@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
 
-const SESSION_DURATION_MS = 4 * 60 * 60 * 1000 // 4 heures
+const SESSION_DURATION_MS = 10 * 60 * 60 * 1000 // 4 heures
 
 export const useSessionStore = defineStore('session', () => {
   // --- State: Data & Pagination ---
