@@ -207,7 +207,7 @@ const dashboardInformations = computed(() =>
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
                 <th class="py-3 px-2 font-medium">Brand</th>
-                <th class="py-3 pr-6 max-sm:px-6 font-medium">Event name</th>
+                <th class="py-3 pr-6 max-sm:px-6 font-medium w-max">Event name</th>
                 <th class="py-3 px-6 font-medium">Questions</th>
                 <th class="py-3 px-6 font-medium">Creation</th>
                 <th class="py-3 px-6 font-medium">Expiration</th>
