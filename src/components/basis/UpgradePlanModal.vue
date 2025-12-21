@@ -22,35 +22,20 @@ onMounted(() => {
 });
 
 const handleUpgrade = () => {
-  // 1. Vérification de sécurité
-  if (!user.value || !user.value.id) {
-    alert("Please log in first.");
-    return;
-  }
+  if (!user.value?.id) return alert("Please log in first.");
 
-  // 2. Construction MANUELLE de l'URL (pour éviter le %5B %5D)
+  // On construit l'URL
   let finalUrl = LEMON_SQUEEZY_CHECKOUT_URL;
-
-  // On ajoute le ? ou le & selon si l'URL de base en a déjà
   finalUrl += finalUrl.includes("?") ? "&" : "?";
 
-  // On écrit les crochets en DUR
+  // On passe les deux infos (ID et Email)
+  // Même si custom[user_id] échoue à cause de l'overlay, l'email passera.
   finalUrl += `checkout[custom][user_id]=${user.value.id}`;
+  finalUrl += `&checkout[email]=${user.value.email}`;
 
-  // On ajoute l'email s'il existe
-  if (user.value.email) {
-    finalUrl += `&checkout[email]=${user.value.email}`;
-  }
-
-  // 3. DEBUG : Cette fois, l'URL sera propre dans la console
-  console.log("🚀 URL CORRIGÉE :", finalUrl);
-
-  // 4. Ouverture du checkout
-  if (window.LemonSqueezy) {
-    window.LemonSqueezy.Url.Open(finalUrl);
-  } else {
-    window.open(finalUrl, "_blank");
-  }
+  // On ouvre dans un NOUVEL ONGLET (window.open)
+  // C'est plus sûr pour les tests que l'overlay JS qui bug parfois
+  window.open(finalUrl, "_blank");
 
   showUpgradePlanModal.value = false;
 };
