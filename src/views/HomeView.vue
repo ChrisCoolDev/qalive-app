@@ -206,8 +206,8 @@ const dashboardInformations = computed(() =>
           <table class="w-full divide-y divide-[#E6E6E6] text-left min-w-[400px]">
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
-                <th class="py-3 px-2 font-medium">Brand</th>
-                <th class="py-3 pr-6 max-sm:px-6 font-medium w-max">Event name</th>
+                <th class="py-3 px-3 font-medium">Brand</th>
+                <th class="py-3 px-6 font-medium w-max">Event name</th>
                 <th class="py-3 px-6 font-medium">Questions</th>
                 <th class="py-3 px-6 font-medium">Creation</th>
                 <th class="py-3 px-6 font-medium">Expiration</th>
@@ -241,7 +241,7 @@ const dashboardInformations = computed(() =>
                     />
                   </div>
                 </td>
-                <td class="py-3 pr-6 max-sm:px-6 text-sm font-medium">
+                <td class="py-3 px-6 text-sm font-medium">
                   <div class="flex items-center space-x-3">
                     <span class="truncate max-w-[180px]" :title="session.name">{{
                       session.name
