@@ -206,7 +206,7 @@ const dashboardInformations = computed(() =>
           <table class="w-full divide-y divide-[#E6E6E6] text-left min-w-[400px]">
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
-                <th class="py-3 pr-2 font-medium">Brand</th>
+                <th class="py-3 px-2 font-medium">Brand</th>
                 <th class="py-3 pr-6 font-medium">Event name</th>
                 <th class="py-3 px-6 font-medium">Questions</th>
                 <th class="py-3 px-6 font-medium">Creation</th>
@@ -222,7 +222,7 @@ const dashboardInformations = computed(() =>
                 class="hover:bg-gray-50 cursor-pointer"
                 @click="redirectToQuestionsView(session.slug)"
               >
-                <td class="py-3 pl-3 text-sm font-medium">
+                <td class="py-3 pl-3 text-sm font-medium max:sm:pr-2">
                   <div
                     class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center"
                   >
