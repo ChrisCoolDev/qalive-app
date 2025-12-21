@@ -1,16 +1,37 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
-import AppLayout from "@/layouts/AppLayout.vue";
-import { storeToRefs } from "pinia";
-import { useSessionStore } from "@/stores/sessionStore";
-import { supabase } from "@/lib/supabase";
-import CreateSessionModal from "@/components/basis/CreateSessionModal.vue";
-import DashboardCard from "@/components/basis/dashboardCard.vue";
-import { formatTimeLocal, formatDateLocal } from "@/utils/dateHelper";
-import { exposeDashboardaInformations } from "@/datas/dashboardDatas";
-import UpgradePlanModal from "@/components/basis/UpgradePlanModal.vue";
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import AppLayout from '@/layouts/AppLayout.vue'
+import { storeToRefs } from 'pinia'
+import { useSessionStore } from '@/stores/sessionStore'
+import { supabase } from '@/lib/supabase'
+import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
+import DashboardCard from '@/components/basis/dashboardCard.vue'
+import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
+import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
+import UpgradePlanModal from '@/components/basis/UpgradePlanModal.vue'
 
-const sessionStore = useSessionStore();
+const logoVariants = [
+  '/logos/logo-variants/logo-variant_1.png',
+  '/logos/logo-variants/logo-variant_2.png',
+  '/logos/logo-variants/logo-variant_3.png',
+]
+
+const getRandomVariant = (sessionId) => {
+  if (!sessionId) return logoVariants[0]
+
+  // On transforme l'ID (ex: "a1b2...") en un nombre unique
+  let hash = 0
+  for (let i = 0; i < sessionId.length; i++) {
+    hash += sessionId.charCodeAt(i)
+  }
+
+  // Le modulo (%) permet de toujours tomber sur un index valide (0, 1 ou 2)
+  const index = hash % logoVariants.length
+
+  return logoVariants[index]
+}
+
+const sessionStore = useSessionStore()
 
 const {
   sessions,
@@ -25,99 +46,94 @@ const {
   totalPages,
   user,
   isPremium, // Nouveau
-} = storeToRefs(sessionStore);
+} = storeToRefs(sessionStore)
 
-const { fetchDashboardData, nextPage, prevPage, deleteSession } = sessionStore;
+const { fetchDashboardData, nextPage, prevPage, deleteSession } = sessionStore
 
 // ... (Code de recherche inchangé) ...
-const searchQuery = ref("");
-const allSessions = ref([]);
+const searchQuery = ref('')
+const allSessions = ref([])
 const filteredSessions = computed(() => {
-  if (!searchQuery.value.trim()) return sessions.value;
-  const query = searchQuery.value.toLowerCase().trim();
-  return allSessions.value.filter((session) =>
-    session.name.toLowerCase().includes(query)
-  );
-});
+  if (!searchQuery.value.trim()) return sessions.value
+  const query = searchQuery.value.toLowerCase().trim()
+  return allSessions.value.filter((session) => session.name.toLowerCase().includes(query))
+})
 const showNoResults = computed(
-  () => searchQuery.value.trim() && filteredSessions.value.length === 0
-);
-const showTable = computed(() => totalSessions.value > 0 && !showNoResults.value);
+  () => searchQuery.value.trim() && filteredSessions.value.length === 0,
+)
+const showTable = computed(() => totalSessions.value > 0 && !showNoResults.value)
 
 function openModal() {
-  showModal.value = true;
+  showModal.value = true
 }
 
 // ... (loadAllSessions inchangé) ...
 async function loadAllSessions() {
   try {
     const { data, error } = await supabase
-      .from("sessions")
-      .select("*, questions(id)")
-      .eq("user_id", user.value.id)
-      .order("created_at", { ascending: false });
+      .from('sessions')
+      .select('*, questions(id)')
+      .eq('user_id', user.value.id)
+      .order('created_at', { ascending: false })
 
-    if (error) throw error;
+    if (error) throw error
     allSessions.value = data.map((session) => ({
       ...session,
       questionCount: session.questions?.length || 0,
-    }));
+    }))
   } catch (err) {
-    console.error(err);
+    console.error(err)
   }
 }
 
 onMounted(async () => {
   // --- DÉBUT DU NETTOYAGE D'URL ---
   // On vérifie s'il y a des paramètres de retour de paiement
-  const url = new URL(window.location.href);
-  if (url.searchParams.has("checkout") || url.searchParams.has("order_id")) {
+  const url = new URL(window.location.href)
+  if (url.searchParams.has('checkout') || url.searchParams.has('order_id')) {
     // On nettoie l'URL visuellement sans recharger la page
-    window.history.replaceState({}, document.title, window.location.pathname);
+    window.history.replaceState({}, document.title, window.location.pathname)
 
     // Optionnel : Tu peux afficher un petit toast "Paiement réussi !" ici
-    console.log("Paiement Lemon Squeezy détecté et URL nettoyée.");
+    console.log('Paiement Lemon Squeezy détecté et URL nettoyée.')
   }
   // --- FIN DU NETTOYAGE ---
 
-  await fetchDashboardData();
-  await loadAllSessions();
+  await fetchDashboardData()
+  await loadAllSessions()
   timer = setInterval(() => {
-    now.value = new Date();
-  }, 60000);
-});
+    now.value = new Date()
+  }, 60000)
+})
 
 // ... (Helpers dates inchangés) ...
-const now = ref(new Date());
-let timer;
+const now = ref(new Date())
+let timer
 function localHourEnsured(dateString) {
-  if (!dateString) return new Date(0);
-  if (typeof dateString === "string" && !dateString.endsWith("Z")) {
-    dateString = dateString.replace(" ", "T") + "Z";
+  if (!dateString) return new Date(0)
+  if (typeof dateString === 'string' && !dateString.endsWith('Z')) {
+    dateString = dateString.replace(' ', 'T') + 'Z'
   }
-  return new Date(dateString);
+  return new Date(dateString)
 }
 onUnmounted(() => {
-  if (timer) clearInterval(timer);
-});
+  if (timer) clearInterval(timer)
+})
 
-const redirectToQuestionsView = (slug) => (window.location.href = `/session/${slug}`);
-const redirectToUserProfilePage = () => (window.location.href = "/profile");
+const redirectToQuestionsView = (slug) => (window.location.href = `/session/${slug}`)
+const redirectToUserProfilePage = () => (window.location.href = '/profile')
 const dashboardInformations = computed(() =>
-  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions)
-);
+  exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
+)
 </script>
 
 <template>
   <AppLayout>
     <div class="mt-[28px] md:px-0">
-      <div
-        class="mb-[35px] flex items-center justify-between"
-        v-if="user && user.user_metadata"
-      >
+      <div class="mb-[35px] flex items-center justify-between" v-if="user && user.user_metadata">
         <div class="space-y-1">
           <h1 class="text-lg font-medium text-primary flex items-center gap-2">
-            🌤️ Hi {{ user.user_metadata.name.split(" ")[0] }},
+            🌤️ Hi {{ user.user_metadata.name.split(' ')[0] }},
             <span
               v-if="isPremium"
               class="px-2 py-0.5 bg-[#E85D4A] text-white text-[10px] rounded-full tracking-wider"
@@ -129,9 +145,7 @@ const dashboardInformations = computed(() =>
               >Free</span
             >
           </h1>
-          <p class="text-[14px] text-[#777] font-mabry">
-            Track your audience engagement.
-          </p>
+          <p class="text-[14px] text-[#777] font-mabry">Track your audience engagement.</p>
         </div>
         <div class="cursor-pointer" @click="redirectToUserProfilePage">
           <img
@@ -141,9 +155,7 @@ const dashboardInformations = computed(() =>
         </div>
       </div>
 
-      <div
-        class="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-y-0 md:gap-x-[12px] mb-[45px]"
-      >
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-y-0 md:gap-x-[12px] mb-[45px]">
         <DashboardCard
           v-for="(info, index) in dashboardInformations"
           :key="index"
@@ -174,16 +186,10 @@ const dashboardInformations = computed(() =>
         </button>
       </div>
 
-      <div
-        v-if="loading && sessions.length === 0"
-        class="text-center text-gray-500 py-10 text-sm"
-      >
+      <div v-if="loading && sessions.length === 0" class="text-center text-gray-500 py-10 text-sm">
         Loading...
       </div>
-      <div
-        v-else-if="errorMsg"
-        class="text-center text-red-500 bg-red-100 p-4 rounded-md"
-      >
+      <div v-else-if="errorMsg" class="text-center text-red-500 bg-red-100 p-4 rounded-md">
         {{ errorMsg }}
       </div>
 
@@ -200,7 +206,7 @@ const dashboardInformations = computed(() =>
           <table class="w-full divide-y divide-[#E6E6E6] text-left min-w-[400px]">
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
-                <th class="py-3 font-medium"></th>
+                <th class="py-3 pr-2 font-medium">Brand</th>
                 <th class="py-3 pr-6 font-medium">Event name</th>
                 <th class="py-3 px-6 font-medium">Questions</th>
                 <th class="py-3 px-6 font-medium">Creation</th>
@@ -226,9 +232,13 @@ const dashboardInformations = computed(() =>
                       alt="Logo"
                       class="w-full h-full object-cover"
                     />
-                    <span v-else class="text-gray-400 text-[13px]">{{
-                      session.name.slice(0, 1).toUpperCase()
-                    }}</span>
+
+                    <img
+                      v-else
+                      :src="getRandomVariant(session.id)"
+                      alt="Variant Logo"
+                      class="w-full h-full object-cover opacity-80"
+                    />
                   </div>
                 </td>
                 <td class="py-3 pr-6 text-sm font-medium">
@@ -251,11 +261,11 @@ const dashboardInformations = computed(() =>
 
                 <td class="py-3 px-6 text-xs -space-y-3">
                   <p>
-                    {{ session.expires_at ? formatDateLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatDateLocal(session.expires_at) : '-' }}
                   </p>
                   <br />
                   <p class="text-xs text-gray-400">
-                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : "-" }}
+                    {{ session.expires_at ? formatTimeLocal(session.expires_at) : '-' }}
                   </p>
                 </td>
 
@@ -268,9 +278,7 @@ const dashboardInformations = computed(() =>
                       'px-2 py-1 rounded-[4px] w-max text-[11px] font-medium',
                     ]"
                   >
-                    {{
-                      now < localHourEnsured(session.expires_at) ? "active" : "inactive"
-                    }}
+                    {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
                   </div>
                 </td>
 
@@ -409,19 +417,13 @@ const dashboardInformations = computed(() =>
             Upgrade to premium plan
           </button>
           <div class="flex justify-end items-center space-x-4">
-            <span class="text-[13px] text-gray-700"
-              >Page {{ page }} on {{ totalPages }}</span
-            >
+            <span class="text-[13px] text-gray-700">Page {{ page }} on {{ totalPages }}</span>
             <button @click="prevPage" :disabled="page === 1" class="disabled:opacity-50">
               <span class="material-symbols-outlined text-tertiary text-[14px]"
                 >keyboard_double_arrow_left</span
               >
             </button>
-            <button
-              @click="nextPage"
-              :disabled="page === totalPages"
-              class="disabled:opacity-50"
-            >
+            <button @click="nextPage" :disabled="page === totalPages" class="disabled:opacity-50">
               <span class="material-symbols-outlined text-tertiary text-[14px]"
                 >keyboard_double_arrow_right</span
               >
