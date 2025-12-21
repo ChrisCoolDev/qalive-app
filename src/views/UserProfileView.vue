@@ -2,17 +2,43 @@
 import BadgeComponent from "@/components/basis/BadgeComponent.vue";
 import { supabase } from "@/lib/supabase";
 import { useAuthSotre } from "@/stores/authStore";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 
 const user = ref(null);
+const userProfile = ref(null); // Pour stocker les infos de la table profiles
 
 const authStore = useAuthSotre();
+const { logout } = authStore;
+
+// Fonction pour récupérer le profil étendu
+const fetchUserProfile = async (userId) => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("plan, billing_portal_url")
+    .eq("id", userId)
+    .single();
+
+  if (data) {
+    userProfile.value = data;
+  }
+};
 
 supabase.auth.onAuthStateChange((_event, session) => {
   user.value = session?.user ?? null;
+  if (user.value) {
+    fetchUserProfile(user.value.id);
+  }
 });
 
-const { logout } = authStore;
+onMounted(() => {
+  // Récupération initiale si déjà connecté
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      user.value = session.user;
+      fetchUserProfile(session.user.id);
+    }
+  });
+});
 
 const handleLogout = async () => {
   const success = await logout();
@@ -45,7 +71,10 @@ const redirectToEmailAddress = () => {
             </p>
           </div>
         </div>
-        <button @click="handleLogout" class="text-[11px] text-red-700 leading-[100%]">
+        <button
+          @click="handleLogout"
+          class="text-[11px] text-red-700 leading-[100%] hover:underline"
+        >
           Disconnect
         </button>
       </section>
@@ -86,6 +115,7 @@ const redirectToEmailAddress = () => {
             </div>
           </div>
         </section>
+
         <section class="mt-5">
           <h2 class="mb-3">Usage</h2>
           <div
@@ -93,7 +123,18 @@ const redirectToEmailAddress = () => {
           >
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600">Current Plan</p>
-              <p class="text-[13px]">Basic</p>
+              <div class="flex flex-col items-end">
+                <p class="text-[13px] capitalize">{{ userProfile?.plan || "Basic" }}</p>
+
+                <a
+                  v-if="userProfile?.billing_portal_url"
+                  :href="userProfile.billing_portal_url"
+                  target="_blank"
+                  class="text-[11px] text-[#E85D4A] hover:underline mt-1"
+                >
+                  Manage subscription
+                </a>
+              </div>
             </div>
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600">Session Created</p>

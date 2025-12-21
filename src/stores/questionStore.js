@@ -1,22 +1,22 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { useSessionStore } from '@/stores/sessionStore'
 
 export const useQuestionStore = defineStore('question', () => {
   const questions = ref([])
   const currentSession = ref(null)
   const loading = ref(true)
   const errorMsg = ref('')
-
-  // 🆕 Variable pour stocker le canal de subscription
   let realtimeChannel = null
 
-  // Fonction existante : récupère les questions initiales
   async function fetchQuestions(sessionSlug) {
+    loading.value = true
+    errorMsg.value = ''
     try {
       const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
-        .select('id, name, slug')
+        .select('id, name, slug, user_id')
         .eq('slug', sessionSlug)
         .single()
 
@@ -40,42 +40,61 @@ export const useQuestionStore = defineStore('question', () => {
     }
   }
 
-  // 🆕 Fonction pour s'abonner aux nouvelles questions en temps réel
-  function subscribeToQuestions(sessionId) {
-    // Si un canal existe déjà, le nettoyer d'abord
-    if (realtimeChannel) {
-      supabase.removeChannel(realtimeChannel)
+  async function addQuestion(content, authorName = 'Anonymous') {
+    const sessionStore = useSessionStore()
+
+    // 🛑 Blocage Free : Max 70 questions
+    // Note: Idéalement, isPremium doit être récupéré via une fonction backend sécurisée
+    // ou via le store session s'il est initialisé.
+    if (!sessionStore.isPremium && questions.value.length >= 70) {
+      throw new Error('Cette session a atteint sa limite de questions (Plan Gratuit).')
     }
 
-    // Créer un nouveau canal pour écouter les INSERT sur la table questions
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .insert([
+          {
+            content,
+            author_name: authorName,
+            session_id: currentSession.value.id,
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (err) {
+      errorMsg.value = err.message
+      throw err
+    }
+  }
+
+  function subscribeToQuestions(sessionId) {
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel)
+
     realtimeChannel = supabase
-      .channel(`questions:session_${sessionId}`) // Nom unique du canal
+      .channel(`questions:session_${sessionId}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT', // On écoute uniquement les nouvelles insertions
+          event: 'INSERT',
           schema: 'public',
           table: 'questions',
-          filter: `session_id=eq.${sessionId}`, // Filtre sur la session courante
+          filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          console.log('📩 Nouvelle question reçue:', payload.new)
-
-          // Ajouter la nouvelle question au début du tableau
           questions.value.unshift(payload.new)
         },
       )
-      .subscribe((status) => {
-        console.log('📡 Statut de la subscription:', status)
-      })
+      .subscribe()
   }
 
-  // 🆕 Fonction pour se désabonner (nettoyage)
   function unsubscribeFromQuestions() {
     if (realtimeChannel) {
       supabase.removeChannel(realtimeChannel)
       realtimeChannel = null
-      console.log('🔌 Déconnexion du canal temps réel')
     }
   }
 
@@ -84,9 +103,9 @@ export const useQuestionStore = defineStore('question', () => {
     currentSession,
     errorMsg,
     loading,
-
     fetchQuestions,
-    subscribeToQuestions, // 🆕 Export
-    unsubscribeFromQuestions, // 🆕 Export
+    addQuestion,
+    subscribeToQuestions,
+    unsubscribeFromQuestions,
   }
 })
