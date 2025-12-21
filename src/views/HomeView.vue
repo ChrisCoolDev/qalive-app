@@ -11,9 +11,9 @@ import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 import UpgradePlanModal from '@/components/basis/UpgradePlanModal.vue'
 
 const logoVariants = [
-  '/logos/logo-variants/logo-variant_1.png',
-  '/logos/logo-variants/logo-variant_2.png',
-  '/logos/logo-variants/logo-variant_3.png',
+  '/logos/logo-variants/logo_variant_1.png',
+  '/logos/logo-variants/logo_variant_2.png',
+  '/logos/logo-variants/logo_variant_3.png',
 ]
 
 const getRandomVariant = (sessionId) => {
