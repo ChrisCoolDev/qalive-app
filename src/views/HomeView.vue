@@ -68,6 +68,18 @@ async function loadAllSessions() {
 }
 
 onMounted(async () => {
+  // --- DÉBUT DU NETTOYAGE D'URL ---
+  // On vérifie s'il y a des paramètres de retour de paiement
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("checkout") || url.searchParams.has("order_id")) {
+    // On nettoie l'URL visuellement sans recharger la page
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    // Optionnel : Tu peux afficher un petit toast "Paiement réussi !" ici
+    console.log("Paiement Lemon Squeezy détecté et URL nettoyée.");
+  }
+  // --- FIN DU NETTOYAGE ---
+
   await fetchDashboardData();
   await loadAllSessions();
   timer = setInterval(() => {
