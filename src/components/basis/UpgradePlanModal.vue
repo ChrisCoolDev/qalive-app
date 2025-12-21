@@ -28,28 +28,28 @@ const handleUpgrade = () => {
     return;
   }
 
-  // 2. Construction ROBUSTE de l'URL
-  // On utilise l'objet URL pour éviter les erreurs de syntaxe (?, &)
-  const urlObj = new URL(LEMON_SQUEEZY_CHECKOUT_URL);
+  // 2. Construction MANUELLE de l'URL (pour éviter le %5B %5D)
+  let finalUrl = LEMON_SQUEEZY_CHECKOUT_URL;
 
-  // A. On ajoute l'ID de l'utilisateur (Vital pour le webhook)
-  urlObj.searchParams.set("checkout[custom][user_id]", user.value.id);
+  // On ajoute le ? ou le & selon si l'URL de base en a déjà
+  finalUrl += finalUrl.includes("?") ? "&" : "?";
 
-  // B. On pré-remplit l'email (Meilleure UX)
+  // On écrit les crochets en DUR
+  finalUrl += `checkout[custom][user_id]=${user.value.id}`;
+
+  // On ajoute l'email s'il existe
   if (user.value.email) {
-    urlObj.searchParams.set("checkout[email]", user.value.email);
+    finalUrl += `&checkout[email]=${user.value.email}`;
   }
 
-  const finalCheckoutUrl = urlObj.toString();
-
-  // 3. DEBUG : Regarde ta console (F12) pour vérifier l'URL générée
-  console.log("🚀 URL de paiement générée :", finalCheckoutUrl);
+  // 3. DEBUG : Cette fois, l'URL sera propre dans la console
+  console.log("🚀 URL CORRIGÉE :", finalUrl);
 
   // 4. Ouverture du checkout
   if (window.LemonSqueezy) {
-    window.LemonSqueezy.Url.Open(finalCheckoutUrl);
+    window.LemonSqueezy.Url.Open(finalUrl);
   } else {
-    window.open(finalCheckoutUrl, "_blank");
+    window.open(finalUrl, "_blank");
   }
 
   showUpgradePlanModal.value = false;
