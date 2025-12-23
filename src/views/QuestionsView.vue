@@ -157,6 +157,11 @@ onUnmounted(() => {
           <div
             class="bg-white rounded-md px-4 py-6 md:px-8 md:py-10 max-w-[1025px] w-full shadow-2xl relative"
           >
+            <img
+              src="/images/santa.svg"
+              alt="Chapeau de Noël"
+              class="absolute rotate-[-20deg] -top-7 md:-top-10 -left-10 md:-left-14 w-20 md:w-28 pointer-events-none"
+            />
             <button
               @click="showQuestionModal = false"
               class="absolute top-2 right-4 md:right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
