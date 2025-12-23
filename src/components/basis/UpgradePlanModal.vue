@@ -8,7 +8,7 @@ const { showUpgradePlanModal, user } = storeToRefs(sessionStore);
 
 // Ton URL Lemon Squeezy
 const LEMON_SQUEEZY_CHECKOUT_URL =
-  "https://qaliveapp.lemonsqueezy.com/buy/8605680b-5f27-4828-8011-af05e9aaa53f";
+  "https://qaliveapp.lemonsqueezy.com/checkout/buy/7db8754f-a537-452c-a25c-d314ac251172";
 
 // Charge le script Lemon.js dynamiquement
 onMounted(() => {
