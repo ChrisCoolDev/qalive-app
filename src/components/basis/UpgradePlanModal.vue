@@ -97,7 +97,7 @@ const handleUpgrade = () => {
       @click="handleUpgrade"
       class="w-full py-3.5 bg-[#E85D4A] hover:bg-[#d44d3c] text-white font-medium rounded-[4px] shadow-lg shadow-orange-200 transition-all transform hover:-translate-y-0.5"
     >
-      Subscribe for $14.99/mo
+      Subscribe for $12.99/mo
     </button>
 
     <p class="mt-4 text-[11px] text-gray-400">
