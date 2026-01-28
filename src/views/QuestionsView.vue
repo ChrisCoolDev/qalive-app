@@ -62,6 +62,30 @@ onUnmounted(() => {
   window.removeEventListener("keydown", handleArrowKey);
   unsubscribeFromQuestions();
 });
+
+// --- Gestion des Fichiers (Nouveau) ---
+import { useFileStore } from "@/stores/fileStore";
+import FileUpload from "@/components/files/FileUpload.vue";
+import FileList from "@/components/files/FileList.vue";
+
+const fileStore = useFileStore();
+const showFileSection = ref(false); // Toggle pour afficher la section fichiers
+
+// Charger les fichiers quand la session est prête
+onMounted(async () => {
+    // ... (Logique existante de questionStore déplacée ici ou on garde l'ordre)
+    // On observe currentSession pour charger les fichiers dès qu'elle est dispo
+    // Note: fetchQuestions charge currentSession.
+    // Idéalement on watch currentSession
+});
+
+import { watch } from 'vue';
+watch(currentSession, (newVal) => {
+    if (newVal?.id) {
+        fileStore.fetchFiles(newVal.id);
+    }
+}, { immediate: true });
+
 </script>
 
 <template>
@@ -120,6 +144,38 @@ onUnmounted(() => {
           All the questions of attenders during this presention are displayed here.
         </p>
       </div>
+
+      <!-- Section Documents (Organisateur) -->
+      <div v-if="currentSession" class="bg-gray-50/50 rounded-lg p-1">
+        <button 
+            @click="showFileSection = !showFileSection"
+            class="flex items-center justify-between space-x-2 text-sm font-medium text-gray-700 px-3 py-2 w-full hover:bg-gray-100 rounded-md transition-colors"
+        >
+          <div class="flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.5186 13.633H8.54714C8.21609 13.633 7.90649 13.4692 7.72029 13.1954L7.2048 12.4376C7.01861 12.1638 6.70901 12 6.37795 12H4.51855C3.69013 12 3.01855 12.6716 3.01855 13.5V19.5C3.01855 20.3284 3.69013 21 4.51855 21H11.5186C12.347 21 13.0186 20.3284 13.0186 19.5V15.133C13.0186 14.3046 12.347 13.633 11.5186 13.633Z" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 21H17.5C18.8807 21 20 19.8807 20 18.5V8.37167C20 7.57602 19.6839 6.81296 19.1213 6.25035L16.7497 3.87868C16.187 3.31607 15.424 3 14.6283 3H7.5C6.11929 3 5 4.11929 5 5.5V9" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19.9764 8H16.5C15.6716 8 15 7.32843 15 6.5V3.02362" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+            <span>Shared Documents ({{ fileStore.files.length }})</span>
+          </div>
+            <span class="material-symbols-outlined text-[18px] ml-auto transition-transform" :class="{'rotate-180': showFileSection}">expand_more</span>
+        </button>
+        
+        <div v-show="showFileSection" class="p-3 space-y-4 border-t border-gray-100 mt-1">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase mb-3">Add a document</h4>
+                    <FileUpload :session-id="currentSession.id" />
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase mb-3">Available documents</h4>
+                    <FileList />
+                </div>
+            </div>
+        </div>
+      </div>
+
 
       <div v-if="loading" class="text-center text-gray-500 text-sm">Loading...</div>
       <div

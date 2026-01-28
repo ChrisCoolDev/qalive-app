@@ -19,10 +19,12 @@ const logoVariants = [
 const getRandomVariant = (sessionId) => {
   if (!sessionId) return logoVariants[0]
 
-  // On transforme l'ID (ex: "a1b2...") en un nombre unique
+  const idStr = String(sessionId) // Conversion en chaîne car l'ID peut être un entier (Serial)
+
+  // On transforme l'ID en un nombre unique
   let hash = 0
-  for (let i = 0; i < sessionId.length; i++) {
-    hash += sessionId.charCodeAt(i)
+  for (let i = 0; i < idStr.length; i++) {
+    hash += idStr.charCodeAt(i)
   }
 
   // Le modulo (%) permet de toujours tomber sur un index valide (0, 1 ou 2)
