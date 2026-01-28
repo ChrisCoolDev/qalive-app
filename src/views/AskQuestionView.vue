@@ -97,6 +97,25 @@ onMounted(async () => {
 
   loadingPage.value = false;
 });
+
+// --- Gestion des Fichiers (Nouveau) ---
+import { useFileStore } from "@/stores/fileStore";
+import FileList from "@/components/files/FileList.vue";
+import { watch, onUnmounted as onUnmountedAsk } from "vue";
+
+const fileStore = useFileStore();
+
+// Charger et souscrire aux fichiers quand sessionId est dispo
+watch(sessionId, (newId) => {
+  if (newId) {
+    fileStore.fetchFiles(newId);
+    fileStore.subscribeToFiles(newId);
+  }
+});
+
+onUnmountedAsk(() => {
+  fileStore.unsubscribeFromFiles();
+});
 </script>
 
 <template>
@@ -243,9 +262,16 @@ onMounted(async () => {
         <div v-else class="space-y-6">
           <div>
             <h1 class="text-xxl font-semibold mb-2">Ask your questions</h1>
-            <p class="text-sm text-gray-600">
-              You can ask the questions you want during the persentation
-            </p>
+            <p class="text-gray-700 text-center text-sm">You can ask the questions you want during the persentation</p>
+          </div>
+
+          <!-- Section Documents (Participant) -->
+          <div v-if="fileStore.files.length > 0" class="bg-gray-50 rounded-lg p-4 border border-gray-100">
+             <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                <span class="material-symbols-outlined text-[18px] mr-2">folder_shared</span>
+                Shared Documents
+             </h3>
+             <FileList />
           </div>
 
           <form @submit.prevent="submitQuestion" class="space-y-6">
