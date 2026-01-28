@@ -8,7 +8,7 @@ const { showUpgradePlanModal, user } = storeToRefs(sessionStore);
 
 // Ton URL Lemon Squeezy
 const LEMON_SQUEEZY_CHECKOUT_URL =
-  "https://qaliveapp.lemonsqueezy.com/buy/8605680b-5f27-4828-8011-af05e9aaa53f";
+  "https://qaliveapp.lemonsqueezy.com/checkout/buy/7db8754f-a537-452c-a25c-d314ac251172";
 
 // Charge le script Lemon.js dynamiquement
 onMounted(() => {
@@ -97,7 +97,7 @@ const handleUpgrade = () => {
       @click="handleUpgrade"
       class="w-full py-3.5 bg-[#E85D4A] hover:bg-[#d44d3c] text-white font-medium rounded-[4px] shadow-lg shadow-orange-200 transition-all transform hover:-translate-y-0.5"
     >
-      Subscribe for $14.99/mo
+      Subscribe for $12.99/mo
     </button>
 
     <p class="mt-4 text-[11px] text-gray-400">
