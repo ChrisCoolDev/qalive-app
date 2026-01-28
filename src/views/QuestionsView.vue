@@ -153,10 +153,10 @@ watch(currentSession, (newVal) => {
         >
           <div class="flex items-center space-x-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M11.5186 13.633H8.54714C8.21609 13.633 7.90649 13.4692 7.72029 13.1954L7.2048 12.4376C7.01861 12.1638 6.70901 12 6.37795 12H4.51855C3.69013 12 3.01855 12.6716 3.01855 13.5V19.5C3.01855 20.3284 3.69013 21 4.51855 21H11.5186C12.347 21 13.0186 20.3284 13.0186 19.5V15.133C13.0186 14.3046 12.347 13.633 11.5186 13.633Z" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M16 21H17.5C18.8807 21 20 19.8807 20 18.5V8.37167C20 7.57602 19.6839 6.81296 19.1213 6.25035L16.7497 3.87868C16.187 3.31607 15.424 3 14.6283 3H7.5C6.11929 3 5 4.11929 5 5.5V9" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M19.9764 8H16.5C15.6716 8 15 7.32843 15 6.5V3.02362" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M11.5186 13.633H8.54714C8.21609 13.633 7.90649 13.4692 7.72029 13.1954L7.2048 12.4376C7.01861 12.1638 6.70901 12 6.37795 12H4.51855C3.69013 12 3.01855 12.6716 3.01855 13.5V19.5C3.01855 20.3284 3.69013 21 4.51855 21H11.5186C12.347 21 13.0186 20.3284 13.0186 19.5V15.133C13.0186 14.3046 12.347 13.633 11.5186 13.633Z" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 21H17.5C18.8807 21 20 19.8807 20 18.5V8.37167C20 7.57602 19.6839 6.81296 19.1213 6.25035L16.7497 3.87868C16.187 3.31607 15.424 3 14.6283 3H7.5C6.11929 3 5 4.11929 5 5.5V9" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19.9764 8H16.5C15.6716 8 15 7.32843 15 6.5V3.02362" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <span>Shared Documents ({{ fileStore.files.length }})</span>
           </div>
             <span class="material-symbols-outlined text-[18px] ml-auto transition-transform" :class="{'rotate-180': showFileSection}">expand_more</span>
@@ -213,11 +213,7 @@ watch(currentSession, (newVal) => {
           <div
             class="bg-white rounded-md px-4 py-6 md:px-8 md:py-10 max-w-[1025px] w-full shadow-2xl relative"
           >
-            <img
-              src="/images/santa.svg"
-              alt="Chapeau de Noël"
-              class="absolute rotate-[-20deg] -top-7 md:-top-10 -left-10 md:-left-14 w-20 md:w-28 pointer-events-none"
-            />
+
             <button
               @click="showQuestionModal = false"
               class="absolute top-2 right-4 md:right-6 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors"
