@@ -31,7 +31,6 @@ export const useAuthSotre = defineStore('auth', () => {
   }
 
   supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth event:', event)
     user.value = session?.user ?? null
     isLoggedIn.value = !!user.value
     loading.value = false

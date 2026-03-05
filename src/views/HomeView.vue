@@ -19,15 +19,13 @@ const logoVariants = [
 const getRandomVariant = (sessionId) => {
   if (!sessionId) return logoVariants[0]
 
-  const idStr = String(sessionId) // Conversion en chaîne car l'ID peut être un entier (Serial)
+  const idStr = String(sessionId)
 
-  // On transforme l'ID en un nombre unique
   let hash = 0
   for (let i = 0; i < idStr.length; i++) {
     hash += idStr.charCodeAt(i)
   }
 
-  // Le modulo (%) permet de toujours tomber sur un index valide (0, 1 ou 2)
   const index = hash % logoVariants.length
 
   return logoVariants[index]
@@ -47,12 +45,12 @@ const {
   showUpgradePlanModal,
   totalPages,
   user,
-  isPremium, // Nouveau
+  isPremium,
 } = storeToRefs(sessionStore)
 
 const { fetchDashboardData, nextPage, prevPage, deleteSession } = sessionStore
 
-// ... (Code de recherche inchangé) ...
+
 const searchQuery = ref('')
 const allSessions = ref([])
 const filteredSessions = computed(() => {
@@ -69,7 +67,7 @@ function openModal() {
   showModal.value = true
 }
 
-// ... (loadAllSessions inchangé) ...
+
 async function loadAllSessions() {
   try {
     const { data, error } = await supabase
@@ -89,17 +87,10 @@ async function loadAllSessions() {
 }
 
 onMounted(async () => {
-  // --- DÉBUT DU NETTOYAGE D'URL ---
-  // On vérifie s'il y a des paramètres de retour de paiement
   const url = new URL(window.location.href)
   if (url.searchParams.has('checkout') || url.searchParams.has('order_id')) {
-    // On nettoie l'URL visuellement sans recharger la page
     window.history.replaceState({}, document.title, window.location.pathname)
-
-    // Optionnel : Tu peux afficher un petit toast "Paiement réussi !" ici
-    console.log('Paiement Lemon Squeezy détecté et URL nettoyée.')
   }
-  // --- FIN DU NETTOYAGE ---
 
   await fetchDashboardData()
   await loadAllSessions()
@@ -108,7 +99,7 @@ onMounted(async () => {
   }, 60000)
 })
 
-// ... (Helpers dates inchangés) ...
+
 const now = ref(new Date())
 let timer
 function localHourEnsured(dateString) {

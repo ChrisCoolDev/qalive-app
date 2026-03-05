@@ -6,11 +6,9 @@ import { onMounted } from "vue";
 const sessionStore = useSessionStore();
 const { showUpgradePlanModal, user } = storeToRefs(sessionStore);
 
-// Ton URL Lemon Squeezy
 const LEMON_SQUEEZY_CHECKOUT_URL =
   "https://qaliveapp.lemonsqueezy.com/checkout/buy/7db8754f-a537-452c-a25c-d314ac251172";
 
-// Charge le script Lemon.js dynamiquement
 onMounted(() => {
   if (!document.getElementById("lemon-js")) {
     const script = document.createElement("script");
@@ -24,17 +22,12 @@ onMounted(() => {
 const handleUpgrade = () => {
   if (!user.value?.id) return alert("Please log in first.");
 
-  // On construit l'URL
   let finalUrl = LEMON_SQUEEZY_CHECKOUT_URL;
   finalUrl += finalUrl.includes("?") ? "&" : "?";
 
-  // On passe les deux infos (ID et Email)
-  // Même si custom[user_id] échoue à cause de l'overlay, l'email passera.
   finalUrl += `checkout[custom][user_id]=${user.value.id}`;
   finalUrl += `&checkout[email]=${user.value.email}`;
 
-  // On ouvre dans un NOUVEL ONGLET (window.open)
-  // C'est plus sûr pour les tests que l'overlay JS qui bug parfois
   window.open(finalUrl, "_blank");
 
   showUpgradePlanModal.value = false;
