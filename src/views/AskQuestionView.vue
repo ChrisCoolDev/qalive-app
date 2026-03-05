@@ -15,7 +15,7 @@ const successMsg = ref("");
 const sessionExpired = ref(false);
 const loadingPage = ref(true);
 
-const sessionId = ref(null); // Ajoute cette ref
+const sessionId = ref(null);
 
 const submitQuestion = async () => {
   errorMsg.value = "";
@@ -24,7 +24,7 @@ const submitQuestion = async () => {
 
   if (sessionExpired.value) {
     errorMsg.value = "Impossible de soumettre, la session est terminée.";
-    loading.value = false; // ⚠️ N'oublie pas de remettre loading à false
+    loading.value = false;
     return;
   }
   if (!questionText.value.trim()) {
@@ -37,7 +37,7 @@ const submitQuestion = async () => {
     {
       content: questionText.value,
       author_name: authorName.value || null,
-      session_id: sessionId.value, // ✅ Utilise session_id au lieu de session_slug
+      session_id: sessionId.value,
     },
   ]);
 
@@ -67,26 +67,14 @@ onMounted(async () => {
     errorMsg.value = "This session doesn't exist.";
     sessionExpired.value = true;
   } else {
-    // 1. On nettoie la date reçue de Supabase pour s'assurer qu'elle est bien en UTC
     let dateString = session.expires_at;
     if (typeof dateString === "string" && !dateString.endsWith("Z")) {
       dateString = dateString.replace(" ", "T") + "Z";
     }
 
-    // 2. On crée l'objet Date
-    // new Date() va automatiquement la convertir en heure locale du navigateur pour l'affichage
     const expiresAt = new Date(dateString);
     const now = new Date();
 
-    // Pour le debug : affichera l'heure locale de l'utilisateur
-    console.log(
-      "Fin prévue (LocaL): " +
-        expiresAt.toLocaleString() +
-        " | Maintenant: " +
-        now.toLocaleString()
-    );
-
-    // 3. Comparaison simple
     if (now > expiresAt) {
       errorMsg.value = "This questions session is over";
       sessionExpired.value = true;
@@ -98,14 +86,13 @@ onMounted(async () => {
   loadingPage.value = false;
 });
 
-// --- Gestion des Fichiers (Nouveau) ---
+
 import { useFileStore } from "@/stores/fileStore";
 import FileList from "@/components/files/FileList.vue";
 import { watch, onUnmounted as onUnmountedAsk } from "vue";
 
 const fileStore = useFileStore();
 
-// Charger et souscrire aux fichiers quand sessionId est dispo
 watch(sessionId, (newId) => {
   if (newId) {
     fileStore.fetchFiles(newId);

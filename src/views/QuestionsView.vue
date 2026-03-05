@@ -48,10 +48,8 @@ function handleArrowKey(e) {
 onMounted(async () => {
   window.addEventListener("keydown", handleArrowKey);
 
-  // 1. Charger les questions initiales
   await fetchQuestions(slug);
 
-  // 2. S'abonner aux nouvelles questions si la session est chargée
   if (currentSession.value?.id) {
     subscribeToQuestions(currentSession.value.id);
   }
@@ -63,21 +61,13 @@ onUnmounted(() => {
   unsubscribeFromQuestions();
 });
 
-// --- Gestion des Fichiers (Nouveau) ---
+
 import { useFileStore } from "@/stores/fileStore";
 import FileUpload from "@/components/files/FileUpload.vue";
 import FileList from "@/components/files/FileList.vue";
 
 const fileStore = useFileStore();
-const showFileSection = ref(false); // Toggle pour afficher la section fichiers
-
-// Charger les fichiers quand la session est prête
-onMounted(async () => {
-    // ... (Logique existante de questionStore déplacée ici ou on garde l'ordre)
-    // On observe currentSession pour charger les fichiers dès qu'elle est dispo
-    // Note: fetchQuestions charge currentSession.
-    // Idéalement on watch currentSession
-});
+const showFileSection = ref(false);
 
 import { watch } from 'vue';
 watch(currentSession, (newVal) => {
@@ -147,7 +137,7 @@ watch(currentSession, (newVal) => {
 
       <!-- Section Documents (Organisateur) -->
       <div v-if="currentSession" class="bg-gray-50/50 rounded-lg p-1">
-        <button 
+        <button
             @click="showFileSection = !showFileSection"
             class="flex items-center justify-between space-x-2 text-sm font-medium text-gray-700 px-3 py-2 w-full hover:bg-gray-100 rounded-md transition-colors"
         >
@@ -161,7 +151,7 @@ watch(currentSession, (newVal) => {
           </div>
             <span class="material-symbols-outlined text-[18px] ml-auto transition-transform" :class="{'rotate-180': showFileSection}">expand_more</span>
         </button>
-        
+
         <div v-show="showFileSection" class="p-3 space-y-4 border-t border-gray-100 mt-1">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>

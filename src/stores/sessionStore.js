@@ -16,7 +16,7 @@ export const useSessionStore = defineStore('session', () => {
 
   // --- State: User Profile & Plan ---
   const user = ref(null)
-  const isPremium = ref(false) // Le statut clé
+  const isPremium = ref(false)
   const userPlan = ref('basic')
 
   // --- State: UI & Feedback ---
@@ -70,7 +70,7 @@ export const useSessionStore = defineStore('session', () => {
    */
   async function uploadLogo(file, userId) {
     const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}/${Date.now()}.${fileExt}` // Chemin: userId/timestamp.jpg
+    const fileName = `${userId}/${Date.now()}.${fileExt}`
 
     const { error: uploadError } = await supabase.storage
       .from('sessions-logos')
@@ -130,7 +130,6 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   async function createSession() {
-    // 🛑 Blocage Free : Max 3 sessions
     if (!isPremium.value && totalSessions.value >= 3) {
       showModal.value = false
       showUpgradePlanModal.value = true
@@ -150,14 +149,12 @@ export const useSessionStore = defineStore('session', () => {
       const userId = authSession.user.id
       const uniqueSlug = await generateUniqueSlug(slugify(sessionName.value))
 
-      // ⏱️ Gestion Durée : Custom si Pro, sinon 2h fixes
       const finalDurationMs = isPremium.value
         ? customDuration.value * 60 * 60 * 1000
         : FREE_SESSION_DURATION_MS
 
       const expiresAt = new Date(Date.now() + finalDurationMs).toISOString()
 
-      // 🖼️ Gestion Logo : Upload si Pro et fichier présent
       let logoUrl = null
       if (isPremium.value && sessionLogoFile.value) {
         logoUrl = await uploadLogo(sessionLogoFile.value, userId)
@@ -173,7 +170,7 @@ export const useSessionStore = defineStore('session', () => {
             access_code: accessCode.value || null,
             user_id: userId,
             expires_at: expiresAt,
-            logo_url: logoUrl, // Nouvelle colonne
+            logo_url: logoUrl,
           },
         ])
         .select('id, slug')
@@ -189,7 +186,7 @@ export const useSessionStore = defineStore('session', () => {
       sessionName.value = ''
       accessCode.value = ''
       customDuration.value = 2
-      sessionLogoFile.value = null // Reset fichier
+      sessionLogoFile.value = null
 
       await fetchDashboardData()
       return true
@@ -201,7 +198,6 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  // 🗑️ Suppression (Pro Only)
   async function deleteSession(sessionId) {
     if (!isPremium.value) {
       errorMsg.value = 'Fonctionnalité réservée aux membres Pro.'
@@ -262,13 +258,13 @@ export const useSessionStore = defineStore('session', () => {
     sessionName,
     accessCode,
     customDuration,
-    sessionLogoFile, // Export nécessaire pour le modal
+    sessionLogoFile,
     createdSessionId,
     createdSessionSlug,
     user,
     totalPages,
     sessionQuestionUrl,
-    isPremium, // Export pour l'UI
+    isPremium,
 
     fetchDashboardData,
     createSession,
