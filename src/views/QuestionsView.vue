@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
-import QuestionCard from "@/components/basis/questionCard.vue";
+import QuestionCard from "@/components/features/QuestionCard.vue";
 import { useQuestionStore } from "@/stores/questionStore";
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";

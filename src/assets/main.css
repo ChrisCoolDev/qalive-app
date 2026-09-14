@@ -61,3 +61,43 @@
 .preserve-whitespace {
   white-space: pre-line;
 }
+
+@font-face {
+  font-family: 'SF-Regular';
+  src: url('/fonts/sans-francisco/SF-Pro-Display-Regular.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF-Medium';
+  src: url('/fonts/sans-francisco/SF-Pro-Display-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF-Semibold';
+  src: url('/fonts/sans-francisco/SF-Pro-Display-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF-Bold';
+  src: url('/fonts/sans-francisco/SF-Pro-Display-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'inter';
+  src: url('/fonts/inter/Inter-VariableFont_opsz,wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

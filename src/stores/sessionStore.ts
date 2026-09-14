@@ -2,12 +2,14 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
+import { sessionRepository } from '@/repositories/sessionRepository'
+import type { Session } from '@/types'
 
 const FREE_SESSION_DURATION_MS = 2 * 60 * 60 * 1000 // 2 heures (Free)
 
 export const useSessionStore = defineStore('session', () => {
   // --- State: Data & Pagination ---
-  const sessions = ref([])
+  const sessions = ref<Session[]>([])
   const totalSessions = ref(0)
   const totalQuestions = ref(0)
   const activeSessions = ref(0)
@@ -15,7 +17,7 @@ export const useSessionStore = defineStore('session', () => {
   const pageSize = 5
 
   // --- State: User Profile & Plan ---
-  const user = ref(null)
+  const user = ref<any>(null)
   const isPremium = ref(false)
   const userPlan = ref('basic')
 
@@ -25,15 +27,16 @@ export const useSessionStore = defineStore('session', () => {
   const successMsg = ref('')
   const showModal = ref(false)
   const showUpgradePlanModal = ref(false)
+  const activeSidebarTab = ref<'overview' | 'archive' | 'trash'>('overview')
 
   // --- State: Form & Creation ---
   const sessionName = ref('')
   const accessCode = ref('')
   const customDuration = ref(2) // Heures (Pro)
-  const sessionLogoFile = ref(null) // Fichier image (Pro)
+  const sessionLogoFile = ref<File | null>(null) // Fichier image (Pro)
 
-  const createdSessionId = ref(null)
-  const createdSessionSlug = ref(null)
+  const createdSessionId = ref<number | null>(null)
+  const createdSessionSlug = ref<string | null>(null)
 
   // --- Computed ---
   const totalPages = computed(() => {
@@ -45,44 +48,18 @@ export const useSessionStore = defineStore('session', () => {
   )
 
   // --- Helpers ---
-  function slugify(str) {
+  function slugify(str: string): string {
     return str
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '')
   }
 
-  async function generateUniqueSlug(baseSlug, attempt = 0) {
+  async function generateUniqueSlug(baseSlug: string, attempt = 0): Promise<string> {
     const slugToCheck = attempt === 0 ? baseSlug : `${baseSlug}-${attempt}`
-    const { data, error } = await supabase
-      .from('sessions')
-      .select('id')
-      .eq('slug', slugToCheck)
-      .single()
-
-    if (error && error.code !== 'PGRST116') throw error
+    const data = await sessionRepository.checkSlugExists(supabase, slugToCheck)
     if (!data) return slugToCheck
     return generateUniqueSlug(baseSlug, attempt + 1)
-  }
-
-  /**
-   * Upload l'image dans le bucket 'session-logos'
-   */
-  async function uploadLogo(file, userId) {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}/${Date.now()}.${fileExt}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('sessions-logos')
-      .upload(fileName, file, { upsert: true })
-
-    if (uploadError) throw uploadError
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('sessions-logos').getPublicUrl(fileName)
-
-    return publicUrl
   }
 
   // --- Actions ---
@@ -95,7 +72,7 @@ export const useSessionStore = defineStore('session', () => {
       const {
         data: { session: authSession },
       } = await supabase.auth.getSession()
-      if (!authSession) return
+      if (!authSession) return false
 
       // 1. Récupérer le statut Premium
       const { data: profile } = await supabase
@@ -121,7 +98,7 @@ export const useSessionStore = defineStore('session', () => {
       activeSessions.value = statsData.activeSessions
 
       return true
-    } catch (err) {
+    } catch (err: any) {
       errorMsg.value = err.message || 'Une erreur est survenue.'
       return false
     } finally {
@@ -157,26 +134,18 @@ export const useSessionStore = defineStore('session', () => {
 
       let logoUrl = null
       if (isPremium.value && sessionLogoFile.value) {
-        logoUrl = await uploadLogo(sessionLogoFile.value, userId)
+        logoUrl = await sessionRepository.uploadLogo(supabase, sessionLogoFile.value, userId)
       }
 
-      // Insert DB
-      const { data: newSession, error: createError } = await supabase
-        .from('sessions')
-        .insert([
-          {
-            name: sessionName.value,
-            slug: uniqueSlug,
-            access_code: accessCode.value || null,
-            user_id: userId,
-            expires_at: expiresAt,
-            logo_url: logoUrl,
-          },
-        ])
-        .select('id, slug')
-        .single()
-
-      if (createError) throw createError
+      // Insert DB via Repository
+      const newSession = await sessionRepository.insertSession(supabase, {
+        name: sessionName.value,
+        slug: uniqueSlug,
+        access_code: accessCode.value || null,
+        user_id: userId,
+        expires_at: expiresAt,
+        logo_url: logoUrl,
+      })
 
       successMsg.value = 'Session créée avec succès !'
       createdSessionId.value = newSession.id
@@ -190,15 +159,15 @@ export const useSessionStore = defineStore('session', () => {
 
       await fetchDashboardData()
       return true
-    } catch (err) {
-      errorMsg.value = err.message
+    } catch (err: any) {
+      errorMsg.value = err.message || 'Une erreur est survenue.'
       return false
     } finally {
       loading.value = false
     }
   }
 
-  async function deleteSession(sessionId) {
+  async function deleteSession(sessionId: number) {
     if (!isPremium.value) {
       errorMsg.value = 'Fonctionnalité réservée aux membres Pro.'
       return
@@ -208,11 +177,10 @@ export const useSessionStore = defineStore('session', () => {
 
     loading.value = true
     try {
-      const { error } = await supabase.from('sessions').delete().eq('id', sessionId)
-      if (error) throw error
+      await sessionRepository.deleteSession(supabase, sessionId)
       await fetchDashboardData()
-    } catch (err) {
-      errorMsg.value = err.message
+    } catch (err: any) {
+      errorMsg.value = err.message || 'Une erreur est survenue.'
     } finally {
       loading.value = false
     }
@@ -265,6 +233,8 @@ export const useSessionStore = defineStore('session', () => {
     totalPages,
     sessionQuestionUrl,
     isPremium,
+    userPlan,
+    activeSidebarTab,
 
     fetchDashboardData,
     createSession,

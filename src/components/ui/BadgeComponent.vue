@@ -1,10 +1,7 @@
-<script setup>
-defineProps({
-  badgeLabel: {
-    type: String,
-    required: true,
-  },
-});
+<script setup lang="ts">
+defineProps<{
+  badgeLabel: string
+}>()
 </script>
 
 <template>

@@ -2,20 +2,17 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 
-export const useAuthSotre = defineStore('auth', () => {
-  //states
+export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const errorMsg = ref('')
   const isLoggedIn = ref(false)
-  const user = ref(null)
+  const user = ref<any>(null)
 
-  //actions
   async function loginWithGoogle() {
     loading.value = true
     errorMsg.value = ''
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      //options: {redirectTo: 'https://app.qalive.ink/overview}
     })
     if (error) {
       errorMsg.value = error.message
@@ -30,7 +27,7 @@ export const useAuthSotre = defineStore('auth', () => {
     return true
   }
 
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  supabase.auth.onAuthStateChange(async (_event, session) => {
     user.value = session?.user ?? null
     isLoggedIn.value = !!user.value
     loading.value = false
@@ -45,3 +42,6 @@ export const useAuthSotre = defineStore('auth', () => {
     logout,
   }
 })
+
+// Alias for backward compatibility/restructured views
+export const useAuthSotre = useAuthStore

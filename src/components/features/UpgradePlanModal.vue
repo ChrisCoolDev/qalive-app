@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useSessionStore } from "@/stores/sessionStore";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";

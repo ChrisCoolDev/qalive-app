@@ -5,7 +5,7 @@ import { storeToRefs } from "pinia";
 
 const authStore = useAuthSotre();
 
-const { isLoggedIn, loading } = storeToRefs(authStore);
+const { isLoggedIn, loading, errorMsg } = storeToRefs(authStore);
 
 async function login() {
   authStore.loginWithGoogle();

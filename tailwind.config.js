@@ -4,6 +4,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        inter: ['inter'],
+        sfRegular: ['SF-Regular'],
+        sfMedium: ['SF-Medium'],
+        sfSemibold: ['SF-Semibold'],
+        sfBold: ['SF-Bold'],
         jakarta: ['nunito', 'sans serif'],
         mabryLight: ['mabryLight'],
         mabry: ['mabry'],

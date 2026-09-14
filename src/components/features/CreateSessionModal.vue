@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useSessionStore } from "@/stores/sessionStore";
 import { storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
@@ -17,10 +17,11 @@ const {
 const { createSession, redirectToSessionQrCode } = sessionStore;
 
 // Preview de l'image locale
-const previewUrl = ref(null);
+const previewUrl = ref<string | null>(null);
 
-const handleFileUpload = (event) => {
-  const file = event.target.files[0];
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
   if (!file) return;
   sessionLogoFile.value = file;
   previewUrl.value = URL.createObjectURL(file);
@@ -51,14 +52,14 @@ const buttonText = computed(() => {
   >
     <div
       @click="showModal = false"
-      class="absolute top-3 right-5 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors cursor-pointer"
+      class="absolute top-4 right-5 text-3xl font-light text-gray-400 hover:text-gray-800 transition-colors cursor-pointer"
     >
-      <span class="material-symbols-outlined"> close_small </span>
+      <svg class="w-5 h-5" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="#0D0D0D" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 6 6 18M6 6l12 12"/></svg>
     </div>
 
     <div class="mb-2">
-      <h2 class="text-lg font-medium text-primary">Create a new session</h2>
-      <p class="text-[12px] text-gray-400">Setup your event interaction in seconds.</p>
+      <h2 class="text-lg font-medium text-primary">Set up your event</h2>
+      <!--<p class="text-[12px] text-gray-400">Setup your event interaction in seconds.</p>-->
     </div>
 
     <div>

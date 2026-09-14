@@ -1,5 +1,5 @@
 <script setup>
-import BadgeComponent from "@/components/basis/BadgeComponent.vue";
+import BadgeComponent from "@/components/ui/BadgeComponent.vue";
 import { supabase } from "@/lib/supabase";
 import { useAuthSotre } from "@/stores/authStore";
 import { ref, onMounted } from "vue";

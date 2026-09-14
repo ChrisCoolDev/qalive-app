@@ -1,10 +1,14 @@
-<script setup>
-defineProps({
-  dashboardInformation: {
-    type: Object,
-    required: true,
-  },
-});
+<script setup lang="ts">
+export interface DashboardCardInfo {
+  icon: string
+  name: string
+  label: string
+  statistic: number | string
+}
+
+defineProps<{
+  dashboardInformation: DashboardCardInfo
+}>()
 </script>
 
 <template>
