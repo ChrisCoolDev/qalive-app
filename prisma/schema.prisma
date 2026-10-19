@@ -24,6 +24,9 @@ model Session {
   isActive    Boolean  @default(true) @map("is_active")
   accessCode  String?  @unique @map("access_code")
   expiresAt   DateTime? @map("expires_at")
+  description String?  @db.Text
+  startsAt    DateTime? @map("starts_at") @db.Timestamptz(6)
+  type        String   @default("qna")
 
 
   // Le lien vers l'utilisateur Supabase (un UUID stocké comme String)

@@ -63,6 +63,7 @@ onUnmounted(() => {
 
 
 import { useFileStore } from "@/stores/fileStore";
+import { isSessionExpired } from "@/utils/sessionStatus";
 import FileUpload from "@/components/files/FileUpload.vue";
 import FileList from "@/components/files/FileList.vue";
 
@@ -156,7 +157,7 @@ watch(currentSession, (newVal) => {
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                     <h4 class="text-xs font-semibold text-gray-500 uppercase mb-3">Add a document</h4>
-                    <FileUpload :session-id="currentSession.id" />
+                    <FileUpload :session-id="currentSession.id" :disabled="isSessionExpired(currentSession)" />
                 </div>
                 <div>
                     <h4 class="text-xs font-semibold text-gray-500 uppercase mb-3">Available documents</h4>

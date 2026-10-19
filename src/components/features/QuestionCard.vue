@@ -29,16 +29,10 @@ const formattedTime = computed(() => {
   <div
     class="border w-full border-[#E1E1E1] px-4 py-3 space-y-2 rounded-[12px] bg-white cursor-pointer transition-all duration-300"
   >
-    <!--<h3 class="text-black font-medium text-[13px]">{{ question.authorName || "Anonymous" }}</h3>
-    <p class="text-[#525151] text-[14px]">{{ question.content || "Lorem ipsum dolor sit amet consectetur. Faucibus pellentesque integer proin aenean felis nisl commodo. Habitant justo vitae enim risus neque aliquam placerat congue mauris."}}</p>
+    <h3 class="text-black font-medium text-[13px]">{{ question.author_name || "Anonymous" }}</h3>
+    <p class="text-[#525151] text-[14px]">{{ question.content }}</p>
     <span class="text-[12px] text-[#AAAAAA]">
-      {{ formattedTime || "il y’a 20 min"}}
-    </span>-->
-
-    <h3 class="text-black font-medium text-[13px]">{{"Anonymous" }}</h3>
-    <p class="text-[#525151] text-[14px]">{{"Lorem ipsum dolor sit amet consectetur. Faucibus pellentesque integer proin aenean felis nisl commodo. Habitant justo vitae enim risus neque aliquam placerat congue mauris."}}</p>
-    <span class="text-[12px] text-[#AAAAAA]">
-      {{"il y’a 20 min"}}
+      {{ formattedTime }}
     </span>
 
   </div>

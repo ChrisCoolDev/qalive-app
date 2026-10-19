@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { useSessionStore } from '@/stores/sessionStore'
 import { supabase } from '@/lib/supabase'
-import CreateSessionModal from '@/components/features/CreateSessionModal.vue'
 import UpgradePlanModal from '@/components/features/UpgradePlanModal.vue'
 import DashboardCard from '@/components/ui/DashboardCard.vue'
 import KanbanBoard from '@/components/features/KanbanBoard.vue'
@@ -107,6 +106,10 @@ async function loadAllSessions() {
         userId: session.user_id,
         logoUrl: session.logo_url,
         questionCount: session.questions?.length || 0,
+        description: session.description ?? null,
+        startsAt: session.starts_at ?? null,
+        starts_at: session.starts_at ?? null,
+        type: session.type ?? 'qna',
       }
     })
   } catch (err) {
@@ -147,6 +150,32 @@ onMounted(async () => {
   await fetchDashboardData()
   await loadAllSessions()
 })
+
+// Synchroniser automatiquement l'affichage des cartes Kanban dès qu'une session est créée ou modifiée
+watch(
+  () => sessionStore.createdSession,
+  async (newSession) => {
+    if (newSession) {
+      await loadAllSessions()
+    }
+  }
+)
+
+watch(
+  () => sessionStore.totalSessions,
+  async () => {
+    await loadAllSessions()
+  }
+)
+
+watch(
+  () => user.value?.id,
+  async (id) => {
+    if (id) {
+      await loadAllSessions()
+    }
+  }
+)
 
 const openModal = () => {
   showModal.value = true
@@ -407,19 +436,7 @@ const toggleSearch = () => {
       </div>
     </div>
 
-    <!-- Modals -->
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div
-          v-if="showModal"
-          @click.self="showModal = false"
-          class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-        >
-          <CreateSessionModal />
-        </div>
-      </Transition>
-    </Teleport>
-
+    <!-- Modals (Create Session modal is rendered in AppLayout) -->
     <Teleport to="body">
       <Transition name="modal-fade">
         <div

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Session } from '@/types'
+import { getSessionStatus } from '@/utils/sessionStatus'
 import KanbanColumn from './KanbanColumn.vue'
 
 const props = defineProps<{
@@ -13,35 +14,19 @@ const emit = defineEmits<{
 }>()
 
 // Split sessions into columns based on status
-const activeSessions = computed(() => {
-  return props.sessions.filter(s => s.is_active)
-})
+const activeSessions = computed(() => props.sessions.filter((s) => getSessionStatus(s) === 'live'))
 
-const upcomingSessions = computed(() => {
+const upcomingSessions = computed(() =>
+  props.sessions.filter((s) => getSessionStatus(s) === 'upcoming'),
+)
 
-  })
-
-const expiredSessions = computed(() => {
-  return props.sessions.filter(s => !s.is_active)
-})
+const expiredSessions = computed(() =>
+  props.sessions.filter((s) => getSessionStatus(s) === 'expired'),
+)
 </script>
 
 <template>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 h-full items-start">
-    <!-- Upcoming Column -->
-    <KanbanColumn
-      title="Upcoming"
-      badge-color="#CADEF6"
-      dot-color="#2883DE"
-      column-bg="#F5F9FD"
-      text-color="#375980"
-      empty-button-color="#4492E2"
-      empty-action-text="Set an upcoming session"
-      :sessions="activeSessions"
-      @delete-session="emit('delete-session', $event)"
-      @archive-session="emit('archive-session', $event)"
-    />
-
     <!-- Active / Live Column -->
     <KanbanColumn
       title="Active"
@@ -52,6 +37,20 @@ const expiredSessions = computed(() => {
       empty-button-color="#5AAB80"
       empty-action-text="Create an instantly session"
       :sessions="activeSessions"
+      @delete-session="emit('delete-session', $event)"
+      @archive-session="emit('archive-session', $event)"
+    />
+
+    <!-- Upcoming Column -->
+    <KanbanColumn
+      title="Upcoming"
+      badge-color="#CADEF6"
+      dot-color="#2883DE"
+      column-bg="#F5F9FD"
+      text-color="#375980"
+      empty-button-color="#4492E2"
+      empty-action-text="Set an upcoming session"
+      :sessions="upcomingSessions"
       @delete-session="emit('delete-session', $event)"
       @archive-session="emit('archive-session', $event)"
     />

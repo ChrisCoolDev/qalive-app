@@ -1,80 +1,93 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createPinia, setActivePinia } from 'pinia'
 import KanbanCard from '@/components/features/KanbanCard.vue'
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    { path: '/session/:slug', component: { template: '<div>D</div>' } },
-    { path: '/session/:slug/qrcode', component: { template: '<div>Q</div>' } }
-  ],
-})
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn(),
+    },
+  },
+}))
 
-describe('KanbanCard.vue', () => {
-  it('renders card information correctly', async () => {
-    const session = {
-      id: 99,
-      name: 'Notion Redesign Sync',
-      createdAt: '2026-08-27T00:00:00Z',
-      isActive: true,
-      slug: 'notion-redesign-sync',
-      accessCode: null,
-      userId: 'user-123',
-      questionCount: 7,
-      is_active: true
-    }
+const NOW = new Date(2026, 9, 14, 12, 0) // Wed 14/10/2026 12:00 (local)
 
-    router.push('/')
-    await router.isReady()
+const baseSession = {
+  id: 99,
+  name: 'Conf Google I/O Berlin 2027',
+  description: 'The yearly Google i/o berlin for developers',
+  createdAt: '2026-08-27T00:00:00Z',
+  isActive: true,
+  is_active: true,
+  slug: 'conf-google-io',
+  accessCode: null,
+  expiresAt: null,
+  userId: 'user-123',
+  questionCount: 7,
+  type: 'qna' as const,
+}
 
-    const wrapper = mount(KanbanCard, {
-      global: {
-        plugins: [router]
-      },
-      props: {
-        session
-      }
-    })
-
-    expect(wrapper.text()).toContain('Notion Redesign Sync')
-    expect(wrapper.text()).toContain('#notion-redesign-sync')
-    expect(wrapper.text()).toContain('Questions')
-    expect(wrapper.text()).toContain('7')
-    expect(wrapper.text()).toContain('27 août 2026')
-    expect(wrapper.text()).toContain('Live')
+const mountCard = (session: Record<string, unknown>) =>
+  mount(KanbanCard, {
+    attachTo: document.body,
+    props: { session: { ...baseSession, ...session } as any },
   })
 
-  it('emits delete event when delete button clicked', async () => {
-    const session = {
-      id: 99,
-      name: 'Notion Redesign Sync',
-      createdAt: '2026-08-27T00:00:00Z',
-      isActive: true,
-      slug: 'notion-redesign-sync',
-      accessCode: null,
-      userId: 'user-123',
-      questionCount: 7,
-      is_active: true
-    }
+describe('KanbanCard.vue', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    vi.useFakeTimers()
+    vi.setSystemTime(NOW)
+  })
 
-    router.push('/')
-    await router.isReady()
+  afterEach(() => {
+    vi.useRealTimers()
+  })
 
-    const wrapper = mount(KanbanCard, {
-      global: {
-        plugins: [router]
-      },
-      props: {
-        session
-      }
-    })
+  it('renders card information correctly', () => {
+    const wrapper = mountCard({})
+    expect(wrapper.text()).toContain('Conf Google I/O Berlin 2027')
+    expect(wrapper.text()).toContain('The yearly Google i/o berlin for developers')
+    expect(wrapper.text()).toContain('7')
+    expect(wrapper.text()).toContain('Q&A')
+  })
 
-    const deleteBtn = wrapper.find('button[title="Delete session"]')
-    expect(deleteBtn.exists()).toBe(true)
-    await deleteBtn.trigger('click')
+  it('shows "Today - Live" in green for a live session', () => {
+    const wrapper = mountCard({})
+    const label = wrapper.findAll('span').find((s) => s.text() === 'Today - Live')
+    expect(label?.exists()).toBe(true)
+    expect(label?.attributes('style')).toContain('#1A772D')
+  })
 
-    expect(wrapper.emitted('delete')).toBeTruthy()
+  it('shows the weekday in purple when the session starts within a week', () => {
+    const startsAt = new Date(2026, 9, 16, 17, 0).toISOString() // Friday 17:00
+    const wrapper = mountCard({ startsAt, starts_at: startsAt })
+    const label = wrapper.findAll('span').find((s) => s.text() === 'Friday - 17:00')
+    expect(label?.exists()).toBe(true)
+    expect(label?.attributes('style')).toContain('#633F99')
+  })
+
+  it('shows the full date in #666 when the session is more than a week away', () => {
+    const startsAt = new Date(2026, 11, 12, 17, 0).toISOString()
+    const wrapper = mountCard({ startsAt, starts_at: startsAt })
+    const label = wrapper.findAll('span').find((s) => s.text() === '12/12/2026 - 17:00')
+    expect(label?.exists()).toBe(true)
+    expect(label?.attributes('style')).toContain('#666666')
+  })
+
+  it('emits delete / archive from the "..." menu', async () => {
+    const wrapper = mountCard({})
+
+    await wrapper.find('#session-card-actions-99').trigger('click')
+    await wrapper.find('#session-card-delete-99').trigger('click')
     expect(wrapper.emitted('delete')?.[0]).toEqual([99])
+
+    await wrapper.find('#session-card-actions-99').trigger('click')
+    await wrapper.find('#session-card-archive-99').trigger('click')
+    expect(wrapper.emitted('archive')?.[0]).toEqual([99])
+
+    wrapper.unmount()
   })
 })

@@ -1,7 +1,21 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useSessionStore } from '@/stores/sessionStore'
+import { storeToRefs } from 'pinia'
+
+const { showModal } = storeToRefs(useSessionStore())
+
+const openCreateSessionModal = () => {
+  showModal.value = true
+}
+</script>
 
 <template>
-  <button class="flex items-center space-x-3 cursor-pointer pl-2">
+  <button
+    id="sidebar-create-new-session"
+    type="button"
+    @click="openCreateSessionModal"
+    class="flex items-center space-x-3 cursor-pointer pl-2"
+  >
     <div>
       <svg class="frame" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <g clip-path="url(#clip0_11_76)">

@@ -23,7 +23,14 @@ export interface Session {
   logoUrl?: string | null
   logo_url?: string | null
   questionCount?: number
+  description?: string | null
+  /** Scheduled start (ISO, UTC). Null/undefined = live session started at creation. */
+  startsAt?: string | null
+  starts_at?: string | null
+  type?: SessionType
 }
+
+export type SessionType = 'qna' | 'survey' | 'poll'
 
 export interface Question {
   id: number

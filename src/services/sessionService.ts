@@ -45,7 +45,11 @@ export const sessionService = {
         user_id: session.user_id,
         logoUrl: session.logo_url,
         logo_url: session.logo_url,
-        questionCount: session.questions?.[0]?.count || 0,
+        questionCount: session.questions?.length || 0,
+        description: session.description ?? null,
+        startsAt: session.starts_at ?? null,
+        starts_at: session.starts_at ?? null,
+        type: session.type ?? 'qna',
       }
     })
   },
@@ -68,7 +72,7 @@ export const sessionService = {
     let activeSessionsCount = 0
 
     for (const session of allSessions) {
-      totalQuestionsCount += (session.questions as any)?.[0]?.count || 0
+      totalQuestionsCount += session.questions?.length || 0
 
       const expires = session.expires_at ? new Date(session.expires_at) : null
       const expiresAt = expires ? new Date(expires.getTime() + 3 * 60 * 60 * 1000) : null

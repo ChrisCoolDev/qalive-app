@@ -4,7 +4,7 @@ export const sessionRepository = {
   async getSessions(supabase: SupabaseClient, userId: string, from: number, to: number) {
     const { data, error } = await supabase
       .from('sessions')
-      .select('*, questions(count)')
+      .select('*, questions(id)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(from, to)
@@ -16,7 +16,7 @@ export const sessionRepository = {
   async getAllSessionsForStats(supabase: SupabaseClient, userId: string) {
     const { data, error } = await supabase
       .from('sessions')
-      .select('expires_at, questions(count)')
+      .select('expires_at, questions(id)')
       .eq('user_id', userId)
 
     if (error) throw error
@@ -43,12 +43,15 @@ export const sessionRepository = {
       user_id: string
       expires_at: string
       logo_url: string | null
+      description?: string | null
+      starts_at?: string | null
+      type?: 'qna' | 'survey' | 'poll'
     }
   ) {
     const { data, error } = await supabase
       .from('sessions')
       .insert([sessionData])
-      .select('id, slug')
+      .select('*')
       .single()
 
     if (error) throw error

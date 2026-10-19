@@ -6,6 +6,10 @@ const props = defineProps({
   sessionId: {
     type: String,
     required: true
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -13,6 +17,7 @@ const fileStore = useFileStore()
 const fileInput = ref(null)
 
 const handleFileChange = async (event) => {
+  if (props.disabled) return
   const file = event.target.files[0]
   if (!file) return
 
@@ -36,8 +41,8 @@ const handleFileChange = async (event) => {
 
     <div class="flex items-center space-x-3">
       <label 
-        class="cursor-pointer bg-gray-50 space-x-[6px] hover:bg-gray-100 text-gray-700 text-xs py-2 px-3 rounded border border-gray-200 flex items-center transition-colors"
-        :class="{'opacity-50 cursor-not-allowed': fileStore.uploading}"
+        class="bg-gray-50 space-x-[6px] text-gray-700 text-xs py-2 px-3 rounded border border-gray-200 flex items-center transition-colors"
+        :class="props.disabled || fileStore.uploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
           <path d="M19 8H15C14.448 8 14 7.552 14 7V3" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -45,7 +50,8 @@ const handleFileChange = async (event) => {
           <path d="M9.08973 12.03L10.9997 13.94L8.96973 15.97" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M11 13.94H5" stroke="#323232" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <span v-if="fileStore.uploading">Uploading...</span>
+        <span v-if="props.disabled">Session expired</span>
+        <span v-else-if="fileStore.uploading">Uploading...</span>
         <span v-else>Choose a file</span>
         
         <input 
@@ -53,7 +59,7 @@ const handleFileChange = async (event) => {
           type="file" 
           class="hidden" 
           @change="handleFileChange"
-          :disabled="fileStore.uploading"
+          :disabled="fileStore.uploading || props.disabled"
         >
       </label>
       

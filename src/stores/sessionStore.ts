@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
 import { sessionRepository } from '@/repositories/sessionRepository'
-import type { Session } from '@/types'
+import type { Session, SessionType } from '@/types'
 
 const FREE_SESSION_DURATION_MS = 2 * 60 * 60 * 1000 // 2 heures (Free)
 
@@ -28,15 +28,21 @@ export const useSessionStore = defineStore('session', () => {
   const showModal = ref(false)
   const showUpgradePlanModal = ref(false)
   const activeSidebarTab = ref<'overview' | 'archive' | 'trash'>('overview')
+  const isSidebarOpen = ref(false)
+  const selectedSession = ref<Session | null>(null)
 
   // --- State: Form & Creation ---
   const sessionName = ref('')
+  const sessionDescription = ref('')
   const accessCode = ref('')
   const customDuration = ref(2) // Heures (Pro)
   const sessionLogoFile = ref<File | null>(null) // Fichier image (Pro)
 
   const createdSessionId = ref<number | null>(null)
   const createdSessionSlug = ref<string | null>(null)
+  const createdSession = ref<Session | null>(null)
+  const showShareModal = ref(false)
+  const shareModalSession = ref<Session | null>(null)
 
   // --- Computed ---
   const totalPages = computed(() => {
@@ -106,7 +112,9 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  async function createSession() {
+  async function createSession(
+    options: { type?: SessionType; startsAt?: Date | null } = {},
+  ) {
     if (!isPremium.value && totalSessions.value >= 3) {
       showModal.value = false
       showUpgradePlanModal.value = true
@@ -130,7 +138,8 @@ export const useSessionStore = defineStore('session', () => {
         ? customDuration.value * 60 * 60 * 1000
         : FREE_SESSION_DURATION_MS
 
-      const expiresAt = new Date(Date.now() + finalDurationMs).toISOString()
+      const startDate = options.startsAt ?? new Date()
+      const expiresAt = new Date(startDate.getTime() + finalDurationMs).toISOString()
 
       let logoUrl = null
       if (isPremium.value && sessionLogoFile.value) {
@@ -145,21 +154,45 @@ export const useSessionStore = defineStore('session', () => {
         user_id: userId,
         expires_at: expiresAt,
         logo_url: logoUrl,
+        description: sessionDescription.value.trim() || null,
+        starts_at: options.startsAt ? options.startsAt.toISOString() : null,
+        type: options.type ?? 'qna',
       })
+
+      const sessionObj: Session = {
+        id: newSession.id,
+        name: newSession.name || sessionName.value,
+        slug: newSession.slug || uniqueSlug,
+        accessCode: newSession.access_code || accessCode.value || null,
+        access_code: newSession.access_code || accessCode.value || null,
+        createdAt: newSession.created_at || new Date().toISOString(),
+        isActive: newSession.is_active ?? true,
+        userId: userId,
+        description: newSession.description ?? (sessionDescription.value.trim() || null),
+        startsAt: newSession.starts_at ?? (options.startsAt ? options.startsAt.toISOString() : null),
+        type: newSession.type ?? options.type ?? 'qna',
+      }
 
       successMsg.value = 'Session créée avec succès !'
       createdSessionId.value = newSession.id
       createdSessionSlug.value = newSession.slug
+      createdSession.value = sessionObj
 
       // Reset Form
       sessionName.value = ''
+      sessionDescription.value = ''
       accessCode.value = ''
       customDuration.value = 2
       sessionLogoFile.value = null
 
-      await fetchDashboardData()
+      try {
+        await fetchDashboardData()
+      } catch (dashErr) {
+        console.warn('fetchDashboardData after creation warning:', dashErr)
+      }
       return true
     } catch (err: any) {
+      console.error('Erreur createSession:', err)
       errorMsg.value = err.message || 'Une erreur est survenue.'
       return false
     } finally {
@@ -206,6 +239,26 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
+  function openSidebar(session: Session) {
+    selectedSession.value = session
+    isSidebarOpen.value = true
+  }
+
+  function closeSidebar() {
+    isSidebarOpen.value = false
+    selectedSession.value = null
+  }
+
+  function openShareModal(session: Session) {
+    shareModalSession.value = session
+    showShareModal.value = true
+  }
+
+  function closeShareModal() {
+    showShareModal.value = false
+    shareModalSession.value = null
+  }
+
   supabase.auth.onAuthStateChange((_event, session) => {
     user.value = session?.user ?? null
     if (user.value) fetchDashboardData()
@@ -223,7 +276,11 @@ export const useSessionStore = defineStore('session', () => {
     successMsg,
     showModal,
     showUpgradePlanModal,
+    showShareModal,
+    shareModalSession,
+    createdSession,
     sessionName,
+    sessionDescription,
     accessCode,
     customDuration,
     sessionLogoFile,
@@ -235,6 +292,8 @@ export const useSessionStore = defineStore('session', () => {
     isPremium,
     userPlan,
     activeSidebarTab,
+    isSidebarOpen,
+    selectedSession,
 
     fetchDashboardData,
     createSession,
@@ -242,5 +301,9 @@ export const useSessionStore = defineStore('session', () => {
     nextPage,
     prevPage,
     redirectToSessionQrCode,
+    openSidebar,
+    closeSidebar,
+    openShareModal,
+    closeShareModal,
   }
 })
