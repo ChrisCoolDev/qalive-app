@@ -406,7 +406,11 @@ const dashboardInformations = computed(() =>
           class="w-full flex flex-row items-center justify-between mt-8 mb-[30px] gap-4 sm:gap-0"
         >
           <p v-if="isPremium" class="text-[13px]">qalive 2.1.1</p>
-          <button v-else class="text-[13px] underline hover:text-[#E85D4A]">
+          <button
+            v-else
+            @click="showUpgradePlanModal = true"
+            class="text-[13px] underline hover:text-[#E85D4A]"
+          >
             Upgrade to premium plan
           </button>
           <div class="flex justify-end items-center space-x-4">
