@@ -98,6 +98,22 @@ export const useQuestionStore = defineStore('question', () => {
     }
   }
 
+  async function upvoteQuestion(questionId) {
+    const q = questions.value.find((item) => item.id === questionId)
+    if (!q) return
+    const newUpvotes = (q.upvotes || 0) + 1
+    q.upvotes = newUpvotes
+
+    try {
+      await supabase
+        .from('questions')
+        .update({ upvotes: newUpvotes })
+        .eq('id', questionId)
+    } catch (err) {
+      console.error('Error upvoting question:', err)
+    }
+  }
+
   return {
     questions,
     currentSession,
@@ -105,6 +121,7 @@ export const useQuestionStore = defineStore('question', () => {
     loading,
     fetchQuestions,
     addQuestion,
+    upvoteQuestion,
     subscribeToQuestions,
     unsubscribeFromQuestions,
   }
