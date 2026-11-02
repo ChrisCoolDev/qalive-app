@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
+import { analytics } from '@/lib/analytics'
 
 const FREE_SESSION_DURATION_MS = 2 * 60 * 60 * 1000 // 2 heures (Free)
 
@@ -105,8 +106,10 @@ export const useSessionStore = defineStore('session', () => {
         .single()
 
       if (profile) {
-        isPremium.value = profile.is_premium
-        userPlan.value = profile.plan
+        isPremium.value =
+          Boolean(profile.is_premium) ||
+          ['pro', 'premium', 'premium_plus', 'cancelled_pro'].includes(profile.plan)
+        userPlan.value = profile.plan || 'basic'
       }
 
       // 2. Récupérer les sessions
@@ -133,6 +136,7 @@ export const useSessionStore = defineStore('session', () => {
     if (!isPremium.value && totalSessions.value >= 3) {
       showModal.value = false
       showUpgradePlanModal.value = true
+      analytics.trackEvent('upgrade_modal_opened', { reason: 'session_limit_3_reached' })
       return false
     }
 
@@ -181,6 +185,11 @@ export const useSessionStore = defineStore('session', () => {
       successMsg.value = 'Session créée avec succès !'
       createdSessionId.value = newSession.id
       createdSessionSlug.value = newSession.slug
+
+      analytics.trackEvent('session_created', {
+        slug: newSession.slug,
+        is_premium: isPremium.value,
+      })
 
       // Reset Form
       sessionName.value = ''

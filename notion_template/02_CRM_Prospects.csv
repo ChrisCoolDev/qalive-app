@@ -1,0 +1,7 @@
+Nom_Contact,Organisation,Niche,Canal,Statut,Date_Relance,Prochain_Evenement,Notes
+"Exemple: Jean Dupont","Universite / Ecole Tech","Enseignement","LinkedIn","A contacter","2026-11-05","Cours amphi 200 etudiants","Prof d'informatique avec grand amphi. Proposer Pro gratuit contre 15 min de feedback"
+"Exemple: Sarah Martin","Meetup Vue.js Paris","Meetups tech","Email","Contacte","2026-11-06","Meetup mensuel le 15","Organisatrice meetup. Proposition d'utiliser QALive pour leur table ronde"
+"Exemple: Marc Leroy","Startup Hub Accelerator","Entreprise / All-Hands","LinkedIn","Repondu","2026-11-07","Demo Friday All-Hands","Interesse par la confidentialite et la facilite du QR code"
+"Exemple: Pastor David","Communaute Foi & Partage","Associations / Eglises","Recommandation","Demo planifiee","2026-11-08","Conference annuelle","Recherche un outil simple pour les questions du public le dimanche"
+"Exemple: Claire Bernard","EdTech Conf","Conferences","Cold Email","Essai Pro actif","2026-11-12","Panel IA le 20 nov","A active son compte Pro offert. Relancer le lendemain de la conference"
+

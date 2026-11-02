@@ -6,9 +6,10 @@ import { useSessionStore } from '@/stores/sessionStore'
 import { supabase } from '@/lib/supabase'
 import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
-import { formatTimeLocal, formatDateLocal } from '@/utils/dateHelper'
+import { formatTimeLocal, formatDateLocal, parseUTCDate } from '@/utils/dateHelper'
 import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 import UpgradePlanModal from '@/components/basis/UpgradePlanModal.vue'
+import { analytics } from '@/lib/analytics'
 
 const logoVariants = [
   '/logos/logo-variants/logo_variant_1.png',
@@ -103,11 +104,7 @@ onMounted(async () => {
 const now = ref(new Date())
 let timer
 function localHourEnsured(dateString) {
-  if (!dateString) return new Date(0)
-  if (typeof dateString === 'string' && !dateString.endsWith('Z')) {
-    dateString = dateString.replace(' ', 'T') + 'Z'
-  }
-  return new Date(dateString)
+  return parseUTCDate(dateString) || new Date(0)
 }
 onUnmounted(() => {
   if (timer) clearInterval(timer)
@@ -115,6 +112,10 @@ onUnmounted(() => {
 
 const redirectToQuestionsView = (slug) => (window.location.href = `/session/${slug}`)
 const redirectToUserProfilePage = () => (window.location.href = '/profile')
+const openUpgradeModal = () => {
+  showUpgradePlanModal.value = true
+  analytics.trackEvent('upgrade_modal_opened', { source: 'dashboard_footer' })
+}
 const dashboardInformations = computed(() =>
   exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions),
 )
@@ -408,7 +409,7 @@ const dashboardInformations = computed(() =>
           <p v-if="isPremium" class="text-[13px]">qalive 2.1.1</p>
           <button
             v-else
-            @click="showUpgradePlanModal = true"
+            @click="openUpgradeModal"
             class="text-[13px] underline hover:text-[#E85D4A]"
           >
             Upgrade to premium plan
@@ -430,17 +431,6 @@ const dashboardInformations = computed(() =>
       </div>
     </div>
 
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div
-          v-if="showModal"
-          @click.self="showModal = false"
-          class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
-        >
-          <CreateSessionModal />
-        </div>
-      </Transition>
-    </Teleport>
     <Teleport to="body">
       <Transition name="modal-fade">
         <div

@@ -4,7 +4,7 @@ import { useFileStore } from '@/stores/fileStore'
 
 const props = defineProps({
   sessionId: {
-    type: String,
+    type: [String, Number],
     required: true
   }
 })

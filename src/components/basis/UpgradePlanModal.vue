@@ -2,6 +2,7 @@
 import { useSessionStore } from "@/stores/sessionStore";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
+import { analytics } from "@/lib/analytics";
 
 const sessionStore = useSessionStore();
 const { showUpgradePlanModal, user } = storeToRefs(sessionStore);
@@ -22,11 +23,16 @@ onMounted(() => {
 const handleUpgrade = () => {
   if (!user.value?.id) return alert("Please log in first.");
 
+  analytics.trackEvent("checkout_clicked", {
+    user_id: user.value.id,
+    plan: "pro_monthly",
+  });
+
   let finalUrl = LEMON_SQUEEZY_CHECKOUT_URL;
   finalUrl += finalUrl.includes("?") ? "&" : "?";
 
-  finalUrl += `checkout[custom][user_id]=${user.value.id}`;
-  finalUrl += `&checkout[email]=${user.value.email}`;
+  finalUrl += `checkout[custom][user_id]=${encodeURIComponent(user.value.id)}`;
+  finalUrl += `&checkout[email]=${encodeURIComponent(user.value.email || "")}`;
 
   window.open(finalUrl, "_blank");
 

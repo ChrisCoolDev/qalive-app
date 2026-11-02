@@ -1,41 +1,70 @@
 <script setup>
 import BadgeComponent from "@/components/basis/BadgeComponent.vue";
 import { supabase } from "@/lib/supabase";
-import { useAuthSotre } from "@/stores/authStore";
-import { ref, onMounted } from "vue";
+import { useAuthStore } from "@/stores/authStore";
+import { ref, computed, onMounted } from "vue";
+import { formatDateLocal } from "@/utils/dateHelper";
 
 const user = ref(null);
-const userProfile = ref(null); // Pour stocker les infos de la table profiles
+const userProfile = ref(null);
+const sessionsCreatedCount = ref(0);
 
-const authStore = useAuthSotre();
+const authStore = useAuthStore();
 const { logout } = authStore;
 
-// Fonction pour récupérer le profil étendu
-const fetchUserProfile = async (userId) => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("plan, billing_portal_url")
-    .eq("id", userId)
-    .single();
+const isUserPremium = computed(() => {
+  if (!userProfile.value) return false;
+  return (
+    Boolean(userProfile.value.is_premium) ||
+    ["pro", "premium", "premium_plus", "cancelled_pro"].includes(userProfile.value.plan)
+  );
+});
 
-  if (data) {
-    userProfile.value = data;
+const formattedPlanLabel = computed(() => {
+  const plan = userProfile.value?.plan;
+  if (!plan || plan === "basic") return isUserPremium.value ? "Pro" : "Basic (Free)";
+  if (plan === "cancelled_pro") {
+    const endStr = userProfile.value?.renews_at
+      ? ` (active until ${formatDateLocal(userProfile.value.renews_at)})`
+      : " (cancelled)";
+    return `Pro${endStr}`;
+  }
+  return plan.replace("_", " ");
+});
+
+const fetchUserProfileAndUsage = async (userId) => {
+  const [profileRes, sessionsCountRes] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("is_premium, plan, billing_portal_url, renews_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    supabase
+      .from("sessions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId),
+  ]);
+
+  if (profileRes.data) {
+    userProfile.value = profileRes.data;
+  }
+  if (typeof sessionsCountRes.count === "number") {
+    sessionsCreatedCount.value = sessionsCountRes.count;
   }
 };
 
 supabase.auth.onAuthStateChange((_event, session) => {
   user.value = session?.user ?? null;
   if (user.value) {
-    fetchUserProfile(user.value.id);
+    fetchUserProfileAndUsage(user.value.id);
   }
 });
 
 onMounted(() => {
-  // Récupération initiale si déjà connecté
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (session?.user) {
       user.value = session.user;
-      fetchUserProfile(session.user.id);
+      fetchUserProfileAndUsage(session.user.id);
     }
   });
 });
@@ -48,13 +77,23 @@ const handleLogout = async () => {
 };
 
 const redirectToEmailAddress = () => {
-  window.location.href = "mailto:talchrist10@gmail.com";
+  window.location.href = "mailto:support@qalive.online";
 };
 </script>
 
 <template>
   <div class="px-4">
     <div class="mx-auto max-w-xl mt-8" v-if="user && user.user_metadata">
+      <div class="mb-6 flex items-center justify-between">
+        <RouterLink
+          to="/overview"
+          class="inline-flex items-center space-x-1 text-[12px] text-gray-500 hover:text-primary transition-colors"
+        >
+          <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+          <span>Back to dashboard</span>
+        </RouterLink>
+      </div>
+
       <section class="flex items-end justify-between mb-8">
         <div class="flex space-x-1 items-center">
           <img
@@ -124,7 +163,7 @@ const redirectToEmailAddress = () => {
             <div class="px-4 flex justify-between items-end py-4">
               <p class="text-[13px] text-gray-600">Current Plan</p>
               <div class="flex flex-col items-end">
-                <p class="text-[13px] capitalize">{{ userProfile?.plan || "Basic" }}</p>
+                <p class="text-[13px] capitalize">{{ formattedPlanLabel }}</p>
 
                 <a
                   v-if="userProfile?.billing_portal_url"
@@ -137,8 +176,14 @@ const redirectToEmailAddress = () => {
               </div>
             </div>
             <div class="px-4 flex justify-between items-end py-4">
-              <p class="text-[13px] text-gray-600">Session Created</p>
-              <p class="text-[13px] text-gray-500">1 of 1</p>
+              <p class="text-[13px] text-gray-600">Sessions Created</p>
+              <p class="text-[13px] text-gray-500">
+                {{
+                  isUserPremium
+                    ? `${sessionsCreatedCount} (Unlimited)`
+                    : `${sessionsCreatedCount} of 3`
+                }}
+              </p>
             </div>
           </div>
         </section>

@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -14,22 +11,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 // Modèle pour les sessions de questions-réponses
 model Session {
-  id          Int      @id @default(autoincrement())
-  slug        String?   @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
+  id          Int           @id @default(autoincrement())
+  slug        String?       @unique @db.Text
+  createdAt   DateTime      @default(now()) @map("created_at")
   name        String
-  isActive    Boolean  @default(true) @map("is_active")
-  accessCode  String?  @unique @map("access_code")
-  expiresAt   DateTime? @map("expires_at")
-
+  isActive    Boolean       @default(true) @map("is_active")
+  accessCode  String?       @unique @map("access_code")
+  expiresAt   DateTime?     @map("expires_at")
+  logoUrl     String?       @map("logo_url")
 
   // Le lien vers l'utilisateur Supabase (un UUID stocké comme String)
-  userId      String   @map("user_id")
+  userId      String        @map("user_id")
 
   questions   Question[]
+  files       SessionFile[]
 
   @@map("sessions")
 }
@@ -50,18 +47,69 @@ model Question {
   @@map("questions")
 }
 
-//Modele pour les champs customs sur les users
+// Modèle pour les documents partagés pendant une session
+model SessionFile {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  fileName    String   @map("file_name")
+  fileUrl     String   @map("file_url")
+  fileSize    Int      @map("file_size")
+  fileType    String   @map("file_type")
 
+  sessionId   Int      @map("session_id")
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("session_files")
+}
+
+// Modèle pour les champs customs et facturation sur les utilisateurs
 model Profile {
-  id        String   @id @db.Uuid
-  isPremium Boolean  @default(false) @map("is_premium")
-  plan      Plan     @default(basic)
+  id                      String    @id @db.Uuid
+  email                   String?
+  isPremium               Boolean   @default(false) @map("is_premium")
+  plan                    Plan      @default(basic)
+  lemonSqueezyCustomerId  String?   @map("lemon_squeezy_customer_id")
+  billingPortalUrl        String?   @map("billing_portal_url")
+  renewsAt                DateTime? @map("renews_at")
 
   @@map("profiles")
 }
 
 enum Plan {
   basic
+  pro
+  cancelled_pro
   premium
   premium_plus
+}
+
+// Modèle pour le tracker minimaliste de vues de pages (sans cookies)
+model AnalyticsPageView {
+  id          BigInt   @id @default(autoincrement())
+  path        String
+  referrer    String?  @default("Direct")
+  utmSource   String?  @map("utm_source")
+  deviceType  String?  @default("Desktop") @map("device_type")
+  visitorHash String   @map("visitor_hash")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([visitorHash])
+  @@map("analytics_page_views")
+}
+
+// Modèle pour les événements du funnel produit
+model AnalyticsEvent {
+  id          BigInt   @id @default(autoincrement())
+  eventName   String   @map("event_name")
+  path        String?
+  visitorHash String?  @map("visitor_hash")
+  userId      String?  @map("user_id")
+  metadata    Json?    @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([eventName])
+  @@map("analytics_events")
 }

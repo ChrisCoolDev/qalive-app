@@ -18,6 +18,8 @@
     "prisma:migrate:dev": "dotenv -e .env.development -- prisma migrate dev",
     "prisma:migrate:prod": "dotenv -e .env.production -- prisma migrate deploy",
     "prisma:migrate:dev:reset": "dotenv -e .env.development -- prisma migrate reset",
+    "supabase:deploy:rgl": "supabase functions deploy lemon-squeezy-webhook --project-ref rglgihxyzrgxbopxabiv --no-verify-jwt",
+    "supabase:deploy:wjl": "supabase functions deploy lemon-squeezy-webhook --project-ref wjlobyxugqaikseojfew --no-verify-jwt",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"

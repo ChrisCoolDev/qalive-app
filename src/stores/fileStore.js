@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
+import { analytics } from '@/lib/analytics'
 
 export const useFileStore = defineStore('file', () => {
     const files = ref([])
@@ -76,6 +77,11 @@ export const useFileStore = defineStore('file', () => {
                 const exists = files.value.find(f => f.id === data.id)
                 if (!exists) files.value.unshift(data)
             }
+
+            analytics.trackEvent('document_uploaded', {
+                session_id: sessionId,
+                file_type: file.type,
+            })
 
             return data
         } catch (err) {

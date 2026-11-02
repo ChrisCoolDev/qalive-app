@@ -1,0 +1,15 @@
+Titre,Type,Statut,Priorite,Score_ICE,Etape_Funnel,Demandeur,Notes
+"P0 - Aligner enum Plan Prisma et webhook Lemon Squeezy (pro / basic)","Dette technique","A faire","P0",90,"Conversion","Fondateur","Bloquant: si la colonne DB est un enum Plan strict l'UPDATE profile echoue lors du paiement"
+"P0 - Securiser limite 70 questions cote serveur / Postgres trigger","Securite","A faire","P0",85,"Conversion","Fondateur","La page AskQuestionView insere directement en base sans controle"
+"P0 - Securiser limite 3 sessions et expiration cote DB / RLS","Securite","A faire","P0",80,"Conversion","Fondateur","Empecher contournement de l'offre gratuite via requetes API directes"
+"P1 - Installer Sentry (@sentry/vue) pour remontee d'erreurs en prod","Stabilite","A faire","P1",80,"Retention","Fondateur","Etre alerte avant que l'organisateur ne signale un incident"
+"P1 - Configurer Better Stack Uptime (alerte SMS/Email)","Stabilite","A faire","P1",85,"Retention","Fondateur","Ping toutes les 3 min sur app.qalive.ink et /ask/demo"
+"P1 - Ajouter badge viral 'Powered by QALive' sur vue participant","Growth","A faire","P1",95,"Acquisition","Fondateur","Chaque participant est un organisateur potentiel - boucle virale #1"
+"P1 - Creer session demo par defaut a l'inscription","Produit","A faire","P1",85,"Activation","Fondateur","Permettre a l'utilisateur de tester la projection en 30 secondes chrono"
+"P1 - Corriger typo useAuthSotre -> useAuthStore","Dette technique","A faire","P1",70,"Retention","Fondateur","Harmoniser les imports dans le store et les vues"
+"P1 - Nettoyer offset temporel +3h en dur dans sessionService","Dette technique","A faire","P1",70,"Stabilite","Fondateur","Normaliser le calcul des dates UTC/locales"
+"P2 - Creer offre 'Event Pass' paiement unique (12$ / session)","Monetisation","A faire","P2",80,"Conversion","Prospects","Pour les organisateurs d'evenements ponctuels (non recurrents)"
+"P2 - Integrer formulaire Tally de feedback fin d'evenement","Produit","A faire","P2",75,"Retention","Utilisateurs","Envoyer email automatique pour recueillir retours et temoignages"
+"P2 - Remplacer mailto perso par Crisp / support@qalive.ink","Support","A faire","P2",65,"Support","Fondateur","Centraliser les messages sur un canal dedie"
+"P3 - Fusionner refonte UI sidebar (future_version_exploration)","Produit","Plus tard","P3",50,"Activation","Interne","Ne pas merger avant validation des 10 premiers clients"
+

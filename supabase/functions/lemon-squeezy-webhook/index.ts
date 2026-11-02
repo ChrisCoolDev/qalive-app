@@ -73,18 +73,41 @@ serve(async (req) => {
 
       // Si on a enfin un ID (soit via custom_data, soit via email)
       if (userId) {
-        const { error } = await supabase
+        const renewsAt = data.attributes.renews_at || data.attributes.ends_at || null
+
+        // Tentative 1 : Schéma complet avec plan 'pro' (upsert pour créer le profil s'il n'existe pas encore)
+        let { error } = await supabase
           .from('profiles')
-          .update({
-            is_premium: true,
-            lemon_squeezy_customer_id: customerId.toString(),
-            plan: 'pro',
-            billing_portal_url: portalUrl
-          })
-          .eq('id', userId)
+          .upsert(
+            {
+              id: userId,
+              is_premium: true,
+              lemon_squeezy_customer_id: customerId.toString(),
+              plan: 'pro',
+              billing_portal_url: portalUrl,
+              renews_at: renewsAt,
+            },
+            { onConflict: 'id' }
+          )
+
+        // Fallback : Si l'enum PostgreSQL "Plan" en prod n'accepte encore que 'premium' au lieu de 'pro'
+        if (error) {
+          console.warn('⚠️ Premier upsert échoué (enum ou colonne), tentative fallback avec plan="premium":', error.message)
+          const fallback = await supabase
+            .from('profiles')
+            .upsert(
+              {
+                id: userId,
+                is_premium: true,
+                plan: 'premium',
+              },
+              { onConflict: 'id' }
+            )
+          error = fallback.error
+        }
 
         if (error) console.error('Erreur SQL update:', error)
-        else console.log(`🎉 SUCCÈS: Profil mis à jour pour ${userId}`)
+        else console.log(`🎉 SUCCÈS: Profil mis à jour en Pro pour ${userId}`)
       } else {
         console.error("❌ ÉCHEC TOTAL: Aucun User ID trouvé (ni dans custom_data, ni via email).")
       }
@@ -98,7 +121,7 @@ serve(async (req) => {
 
       console.log(`⚠️ Annulation demandée pour le client ${customerId}. Fin d'accès prévue le : ${endsAt}`)
 
-      await supabase.from('profiles')
+      const { error } = await supabase.from('profiles')
         .update({
           // On garde is_premium à TRUE !
           is_premium: true,
@@ -107,6 +130,16 @@ serve(async (req) => {
           renews_at: endsAt // On stocke la date de fin réelle
         })
         .eq('lemon_squeezy_customer_id', customerId.toString())
+
+      // Fallback si 'cancelled_pro' n'est pas encore dans l'enum Plan
+      if (error) {
+        console.warn('⚠️ Fallback annulation (enum Plan): conservation de is_premium=true', error.message)
+        await supabase.from('profiles')
+          .update({
+            is_premium: true,
+          })
+          .eq('lemon_squeezy_customer_id', customerId.toString())
+      }
     }
 
     // Gestion de l'expiration (C'est ICI qu'on coupe vraiment)

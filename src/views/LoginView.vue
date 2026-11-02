@@ -1,11 +1,11 @@
 <script setup>
 import AppLayout from "@/layouts/AppLayout.vue";
-import { useAuthSotre } from "@/stores/authStore";
+import { useAuthStore } from "@/stores/authStore";
 import { storeToRefs } from "pinia";
 
-const authStore = useAuthSotre();
+const authStore = useAuthStore();
 
-const { isLoggedIn, loading } = storeToRefs(authStore);
+const { isLoggedIn, loading, errorMsg } = storeToRefs(authStore);
 
 async function login() {
   authStore.loginWithGoogle();

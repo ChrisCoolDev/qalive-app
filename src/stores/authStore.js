@@ -1,21 +1,23 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
+import { analytics } from '@/lib/analytics'
 
-export const useAuthSotre = defineStore('auth', () => {
-  //states
+export const useAuthStore = defineStore('auth', () => {
+  // states
   const loading = ref(false)
   const errorMsg = ref('')
   const isLoggedIn = ref(false)
   const user = ref(null)
 
-  //actions
+  // actions
   async function loginWithGoogle() {
     loading.value = true
     errorMsg.value = ''
+    analytics.trackEvent('login_initiated', { provider: 'google' })
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      //options: {redirectTo: 'https://app.qalive.ink/overview}
     })
     if (error) {
       errorMsg.value = error.message
@@ -30,7 +32,7 @@ export const useAuthSotre = defineStore('auth', () => {
     return true
   }
 
-  supabase.auth.onAuthStateChange(async (event, session) => {
+  supabase.auth.onAuthStateChange(async (_event, session) => {
     user.value = session?.user ?? null
     isLoggedIn.value = !!user.value
     loading.value = false
@@ -45,3 +47,6 @@ export const useAuthSotre = defineStore('auth', () => {
     logout,
   }
 })
+
+// Alias rétrocompatible pour éviter toute régression sur d'anciens imports
+export const useAuthSotre = useAuthStore

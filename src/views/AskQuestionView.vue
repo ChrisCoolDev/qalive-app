@@ -1,8 +1,13 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted as onUnmountedAsk, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { supabase } from "@/lib/supabase";
 import AppLayout from "@/layouts/AppLayout.vue";
+import { useFileStore } from "@/stores/fileStore";
+import FileList from "@/components/files/FileList.vue";
+import { parseUTCDate } from "@/utils/dateHelper";
+import { analytics } from "@/lib/analytics";
+import { FREE_QUESTION_LIMIT } from "@/stores/questionStore";
 
 const route = useRoute();
 const sessionSlug = route.params.slug;
@@ -13,30 +18,75 @@ const loading = ref(false);
 const errorMsg = ref("");
 const successMsg = ref("");
 const sessionExpired = ref(false);
+const limitReached = ref(false);
 const loadingPage = ref(true);
 
 const sessionId = ref(null);
+const sessionExpiresAt = ref(null);
+const isOwnerPremium = ref(false);
+const currentQuestionCount = ref(0);
+
+const fileStore = useFileStore();
+
+async function checkIfLimitReached() {
+  if (isOwnerPremium.value || !sessionId.value) return false;
+
+  const { count, error } = await supabase
+    .from("questions")
+    .select("*", { count: "exact", head: true })
+    .eq("session_id", sessionId.value);
+
+  if (!error && typeof count === "number") {
+    currentQuestionCount.value = count;
+    if (count >= FREE_QUESTION_LIMIT) {
+      limitReached.value = true;
+      return true;
+    }
+  }
+  return false;
+}
 
 const submitQuestion = async () => {
   errorMsg.value = "";
   successMsg.value = "";
   loading.value = true;
 
+  // 1. Re-vérifier l'expiration au moment du clic
+  if (sessionExpiresAt.value && new Date() > sessionExpiresAt.value) {
+    sessionExpired.value = true;
+    errorMsg.value = "This questions session is over.";
+    loading.value = false;
+    return;
+  }
+
   if (sessionExpired.value) {
     errorMsg.value = "Impossible de soumettre, la session est terminée.";
     loading.value = false;
     return;
   }
+
   if (!questionText.value.trim()) {
-    errorMsg.value = "Merci de saisir votre question";
+    errorMsg.value = "Merci de saisir votre question.";
+    loading.value = false;
+    return;
+  }
+
+  // 2. Vérifier la limite de 70 questions (Plan Gratuit)
+  const reached = await checkIfLimitReached();
+  if (reached) {
+    analytics.trackEvent("question_limit_reached", {
+      session_id: sessionId.value,
+      slug: sessionSlug,
+    });
+    errorMsg.value = `This session has reached its limit of ${FREE_QUESTION_LIMIT} questions (Free Plan).`;
     loading.value = false;
     return;
   }
 
   const { error } = await supabase.from("questions").insert([
     {
-      content: questionText.value,
-      author_name: authorName.value || null,
+      content: questionText.value.trim(),
+      author_name: authorName.value.trim() || null,
       session_id: sessionId.value,
     },
   ]);
@@ -46,6 +96,16 @@ const submitQuestion = async () => {
   if (error) {
     errorMsg.value = error.message;
   } else {
+    currentQuestionCount.value += 1;
+    if (!isOwnerPremium.value && currentQuestionCount.value >= FREE_QUESTION_LIMIT) {
+      limitReached.value = true;
+    }
+
+    analytics.trackEvent("question_submitted", {
+      session_id: sessionId.value,
+      slug: sessionSlug,
+    });
+
     successMsg.value = "Your question was sent successfully!";
     questionText.value = "";
     authorName.value = "";
@@ -57,41 +117,79 @@ const submitQuestion = async () => {
 };
 
 onMounted(async () => {
-  const { data: session, error } = await supabase
-    .from("sessions")
-    .select("id, expires_at")
-    .eq("slug", sessionSlug)
-    .single();
+  try {
+    // 1. Tenter via la fonction RPC sécurisée si la migration SQL est active
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      "get_public_session_status",
+      { p_slug: sessionSlug }
+    );
 
-  if (error || !session) {
-    errorMsg.value = "This session doesn't exist.";
-    sessionExpired.value = true;
-  } else {
-    let dateString = session.expires_at;
-    if (typeof dateString === "string" && !dateString.endsWith("Z")) {
-      dateString = dateString.replace(" ", "T") + "Z";
+    if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+      const status = rpcData[0];
+      sessionExpiresAt.value = parseUTCDate(status.expires_at);
+      isOwnerPremium.value = Boolean(status.is_owner_premium);
+      currentQuestionCount.value = Number(status.question_count || 0);
+      limitReached.value = Boolean(status.is_limit_reached);
+
+      if (status.is_expired) {
+        errorMsg.value = "This questions session is over";
+        sessionExpired.value = true;
+      } else {
+        sessionId.value = status.session_id;
+      }
+      loadingPage.value = false;
+      return;
     }
 
-    const expiresAt = new Date(dateString);
-    const now = new Date();
+    // 2. Fallback direct sur les tables sessions / profiles / questions
+    const { data: session, error } = await supabase
+      .from("sessions")
+      .select("id, expires_at, user_id, questions(count)")
+      .eq("slug", sessionSlug)
+      .single();
 
-    if (now > expiresAt) {
-      errorMsg.value = "This questions session is over";
+    if (error || !session) {
+      errorMsg.value = "This session doesn't exist.";
       sessionExpired.value = true;
     } else {
-      sessionId.value = session.id;
+      const expiresAt = parseUTCDate(session.expires_at);
+      sessionExpiresAt.value = expiresAt;
+      const now = new Date();
+
+      if (expiresAt && now > expiresAt) {
+        errorMsg.value = "This questions session is over";
+        sessionExpired.value = true;
+      } else {
+        sessionId.value = session.id;
+        currentQuestionCount.value = session.questions?.[0]?.count || 0;
+
+        // Vérifier si l'organisateur est Pro
+        if (session.user_id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("is_premium, plan")
+            .eq("id", session.user_id)
+            .maybeSingle();
+
+          if (profile) {
+            isOwnerPremium.value =
+              Boolean(profile.is_premium) ||
+              ["pro", "premium", "premium_plus", "cancelled_pro"].includes(profile.plan);
+          }
+        }
+
+        if (!isOwnerPremium.value && currentQuestionCount.value >= FREE_QUESTION_LIMIT) {
+          limitReached.value = true;
+        }
+      }
     }
+  } catch (err) {
+    errorMsg.value = err.message || "Unable to load session.";
+    sessionExpired.value = true;
+  } finally {
+    loadingPage.value = false;
   }
-
-  loadingPage.value = false;
 });
-
-
-import { useFileStore } from "@/stores/fileStore";
-import FileList from "@/components/files/FileList.vue";
-import { watch, onUnmounted as onUnmountedAsk } from "vue";
-
-const fileStore = useFileStore();
 
 watch(sessionId, (newId) => {
   if (newId) {
@@ -249,7 +347,22 @@ onUnmountedAsk(() => {
         <div v-else class="space-y-6">
           <div>
             <h1 class="text-xxl font-semibold text-center mb-2">Ask your questions</h1>
-            <p class="text-gray-700 text-center text-sm">You can ask the questions you want during the persentation</p>
+            <p class="text-gray-700 text-center text-sm">You can ask the questions you want during the presentation</p>
+          </div>
+
+          <!-- Alerte d'erreur ou limite atteinte -->
+          <div
+            v-if="errorMsg"
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-[4px] text-xs text-center"
+          >
+            {{ errorMsg }}
+          </div>
+
+          <div
+            v-else-if="limitReached"
+            class="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-[4px] text-xs text-center"
+          >
+            This session has reached the maximum of {{ FREE_QUESTION_LIMIT }} questions (Free Plan).
           </div>
 
           <!-- Section Documents (Participant) -->
@@ -271,10 +384,10 @@ onUnmountedAsk(() => {
                 <textarea
                   v-model="questionText"
                   rows="4"
-                  class="w-full py-2 px-3 border rounded outline-none text-sm resize-none"
+                  class="w-full py-2 px-3 border rounded outline-none text-sm resize-none disabled:bg-gray-50"
                   placeholder="Enter your question here..."
                   required
-                  :disabled="loading"
+                  :disabled="loading || limitReached"
                 ></textarea>
               </div>
               <div>
@@ -283,20 +396,32 @@ onUnmountedAsk(() => {
                 >
                 <input
                   v-model="authorName"
-                  class="w-full p-2 border rounded"
-                  :disabled="loading"
+                  class="w-full p-2 border rounded disabled:bg-gray-50"
+                  :disabled="loading || limitReached"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              class="w-full py-3 px-4 bg-[#E85D4A] text-white rounded-[4px] text-sm"
-              :disabled="loading"
+              class="w-full py-3 px-4 bg-[#E85D4A] text-white rounded-[4px] text-sm disabled:opacity-50"
+              :disabled="loading || limitReached"
             >
-              {{ loading ? "Submitting..." : "Submit question" }}
+              {{ loading ? "Submitting..." : limitReached ? "Question limit reached" : "Submit question" }}
             </button>
           </form>
+
+          <!-- Badge viral sur les sessions gratuites -->
+          <div v-if="!isOwnerPremium" class="pt-4 text-center">
+            <a
+              href="https://qalive.ink?utm_source=powered_by_badge"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#F6F5EF] text-[11px] text-gray-600 hover:text-[#E85D4A] transition-colors"
+            >
+              <span>⚡ Powered by <strong>QALive</strong></span>
+            </a>
+          </div>
         </div>
       </div>
     </div>

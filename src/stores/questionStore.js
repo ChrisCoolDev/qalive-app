@@ -2,10 +2,15 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { useSessionStore } from '@/stores/sessionStore'
+import { parseUTCDate } from '@/utils/dateHelper'
+import { analytics } from '@/lib/analytics'
+
+export const FREE_QUESTION_LIMIT = 70
 
 export const useQuestionStore = defineStore('question', () => {
   const questions = ref([])
   const currentSession = ref(null)
+  const isOwnerPremium = ref(false)
   const loading = ref(true)
   const errorMsg = ref('')
   let realtimeChannel = null
@@ -16,7 +21,7 @@ export const useQuestionStore = defineStore('question', () => {
     try {
       const { data: sessionData, error: sessionError } = await supabase
         .from('sessions')
-        .select('id, name, slug, user_id')
+        .select('id, name, slug, user_id, expires_at, logo_url')
         .eq('slug', sessionSlug)
         .single()
 
@@ -25,6 +30,22 @@ export const useQuestionStore = defineStore('question', () => {
 
       currentSession.value = sessionData
 
+      // Récupérer le statut Pro du créateur de la session
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('is_premium, plan')
+        .eq('id', sessionData.user_id)
+        .maybeSingle()
+
+      if (ownerProfile) {
+        isOwnerPremium.value =
+          Boolean(ownerProfile.is_premium) ||
+          ['pro', 'premium', 'premium_plus', 'cancelled_pro'].includes(ownerProfile.plan)
+      } else {
+        const sessionStore = useSessionStore()
+        isOwnerPremium.value = Boolean(sessionStore.isPremium)
+      }
+
       const { data: questionsData, error: questionsError } = await supabase
         .from('questions')
         .select('*')
@@ -32,7 +53,7 @@ export const useQuestionStore = defineStore('question', () => {
         .order('created_at', { ascending: false })
 
       if (questionsError) throw questionsError
-      questions.value = questionsData
+      questions.value = questionsData || []
     } catch (err) {
       errorMsg.value = err.message
     } finally {
@@ -41,13 +62,20 @@ export const useQuestionStore = defineStore('question', () => {
   }
 
   async function addQuestion(content, authorName = 'Anonymous') {
-    const sessionStore = useSessionStore()
+    if (!currentSession.value?.id) {
+      throw new Error('Session invalide.')
+    }
 
-    // 🛑 Blocage Free : Max 70 questions
-    // Note: Idéalement, isPremium doit être récupéré via une fonction backend sécurisée
-    // ou via le store session s'il est initialisé.
-    if (!sessionStore.isPremium && questions.value.length >= 70) {
-      throw new Error('Cette session a atteint sa limite de questions (Plan Gratuit).')
+    // 1. Vérifier l'expiration
+    const expiresAt = parseUTCDate(currentSession.value.expires_at)
+    if (expiresAt && new Date() > expiresAt) {
+      throw new Error('Impossible de soumettre, la session est terminée.')
+    }
+
+    // 2. Vérifier la limite de 70 questions sur le plan Gratuit
+    if (!isOwnerPremium.value && questions.value.length >= FREE_QUESTION_LIMIT) {
+      analytics.trackEvent('question_limit_reached', { session_id: currentSession.value.id })
+      throw new Error('Cette session a atteint sa limite de 70 questions (Plan Gratuit).')
     }
 
     try {
@@ -56,7 +84,7 @@ export const useQuestionStore = defineStore('question', () => {
         .insert([
           {
             content,
-            author_name: authorName,
+            author_name: authorName || null,
             session_id: currentSession.value.id,
           },
         ])
@@ -64,6 +92,12 @@ export const useQuestionStore = defineStore('question', () => {
         .single()
 
       if (error) throw error
+
+      analytics.trackEvent('question_submitted', {
+        session_id: currentSession.value.id,
+        slug: currentSession.value.slug,
+      })
+
       return data
     } catch (err) {
       errorMsg.value = err.message
@@ -85,7 +119,10 @@ export const useQuestionStore = defineStore('question', () => {
           filter: `session_id=eq.${sessionId}`,
         },
         (payload) => {
-          questions.value.unshift(payload.new)
+          const exists = questions.value.some((q) => q.id === payload.new.id)
+          if (!exists) {
+            questions.value.unshift(payload.new)
+          }
         },
       )
       .subscribe()
@@ -101,6 +138,7 @@ export const useQuestionStore = defineStore('question', () => {
   return {
     questions,
     currentSession,
+    isOwnerPremium,
     errorMsg,
     loading,
     fetchQuestions,

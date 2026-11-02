@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { parseUTCDate } from "@/utils/dateHelper";
 
 const props = defineProps({
   question: {
@@ -10,21 +11,9 @@ const props = defineProps({
 
 // Formate l'heure pour un affichage court
 const formattedTime = computed(() => {
-  if (!props.question.created_at) return "";
+  const date = parseUTCDate(props.question.created_at);
+  if (!date || isNaN(date.getTime())) return "";
 
-  // 1. On sécurise le format de la date
-  let dateString = props.question.created_at;
-
-  // Si la date vient de la DB sous forme "2023-12-16 14:30:00" sans le Z,
-  // on force le format ISO UTC ("2023-12-16T14:30:00Z")
-  if (typeof dateString === "string" && !dateString.endsWith("Z")) {
-    dateString = dateString.replace(" ", "T") + "Z";
-  }
-
-  // 2. Création de l'objet Date (le navigateur convertit automatiquement en local ici)
-  const date = new Date(dateString);
-
-  // 3. Affichage au format français (utilisera le fuseau horaire du navigateur)
   return date.toLocaleTimeString("fr-FR", {
     hour: "2-digit",
     minute: "2-digit",
