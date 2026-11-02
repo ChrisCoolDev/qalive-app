@@ -190,13 +190,18 @@ CREATE TABLE IF NOT EXISTS public.analytics_page_views (
   referrer TEXT DEFAULT 'Direct',
   utm_source TEXT,
   device_type TEXT DEFAULT 'Desktop',
+  country_code TEXT DEFAULT 'XX',
   visitor_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE public.analytics_page_views
+  ADD COLUMN IF NOT EXISTS country_code TEXT DEFAULT 'XX';
+
 CREATE INDEX IF NOT EXISTS idx_analytics_pv_created_at ON public.analytics_page_views(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_analytics_pv_path ON public.analytics_page_views(path);
 CREATE INDEX IF NOT EXISTS idx_analytics_pv_visitor ON public.analytics_page_views(visitor_hash);
+CREATE INDEX IF NOT EXISTS idx_analytics_pv_country ON public.analytics_page_views(country_code);
 
 CREATE TABLE IF NOT EXISTS public.analytics_events (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

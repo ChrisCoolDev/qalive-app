@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { parseUTCDate } from '@/utils/dateHelper'
+import { detectVisitorCountryCode, getCountryFlag, getCountryName } from '@/utils/geoHelper'
 
 const LOCAL_STORAGE_PV_KEY = 'qalive_pulse_pv_v1'
 const LOCAL_STORAGE_EV_KEY = 'qalive_pulse_ev_v1'
@@ -142,26 +143,42 @@ export const analytics = {
       lastTrackedTime = now
 
       const { referrer, utm_source } = getCleanSource()
+      const country_code = detectVisitorCountryCode()
       const payload = {
         path,
         referrer,
         utm_source,
         device_type: getDeviceType(),
+        country_code,
         visitor_hash: getDailyVisitorHash(),
         created_at: new Date().toISOString(),
       }
 
       saveLocalItem(LOCAL_STORAGE_PV_KEY, payload)
 
-      await supabase.from('analytics_page_views').insert([
+      const { error: insertErr } = await supabase.from('analytics_page_views').insert([
         {
           path: payload.path,
           referrer: payload.referrer,
           utm_source: payload.utm_source,
           device_type: payload.device_type,
+          country_code: payload.country_code,
           visitor_hash: payload.visitor_hash,
         },
       ])
+
+      // Fallback si la colonne country_code n'a pas encore été ajoutée en base
+      if (insertErr) {
+        await supabase.from('analytics_page_views').insert([
+          {
+            path: payload.path,
+            referrer: payload.referrer,
+            utm_source: payload.utm_source,
+            device_type: payload.device_type,
+            visitor_hash: payload.visitor_hash,
+          },
+        ])
+      }
     } catch {
       // Silencieux pour ne jamais perturber l'UX
     }
@@ -229,7 +246,7 @@ export const analytics = {
     // 1. Lecture globale des vues de pages depuis Supabase
     const { data: pvData, error: pvError } = await supabase
       .from('analytics_page_views')
-      .select('path, referrer, utm_source, device_type, visitor_hash, created_at')
+      .select('*')
       .gte('created_at', sinceISO)
       .order('created_at', { ascending: false })
       .limit(10000)
@@ -295,12 +312,14 @@ export const analytics = {
       // Ignore
     }
 
-    // 4. Agrégations (Visiteurs uniques, Top Pages, Top Sources, Devices, Courbe journalière)
+    // 4. Agrégations (Visiteurs uniques, Top Pages, Top Sources, Pays, Devices, Courbe journalière)
     const uniqueVisitorSet = new Set()
     const pagesMap = new Map()
     const sourcesMap = new Map()
+    const countriesMap = new Map()
     const devicesMap = { Desktop: 0, Mobile: 0 }
     const eventsMap = new Map()
+    const fallbackCountry = detectVisitorCountryCode()
 
     for (const pv of pageViews) {
       const vHash = pv.visitor_hash || 'v_anon'
@@ -323,6 +342,15 @@ export const analytics = {
       const srcEntry = sourcesMap.get(src)
       srcEntry.views++
       srcEntry.visitors.add(vHash)
+
+      // Countries
+      const cCode = (pv.country_code && pv.country_code !== 'XX' ? pv.country_code : fallbackCountry).toUpperCase()
+      if (!countriesMap.has(cCode)) {
+        countriesMap.set(cCode, { code: cCode, views: 0, visitors: new Set() })
+      }
+      const countryEntry = countriesMap.get(cCode)
+      countryEntry.views++
+      countryEntry.visitors.add(vHash)
 
       // Devices
       const dev = pv.device_type === 'Mobile' ? 'Mobile' : 'Desktop'
@@ -356,6 +384,18 @@ export const analytics = {
       }))
       .sort((a, b) => b.visitors - a.visitors)
       .slice(0, 8)
+
+    const topCountries = Array.from(countriesMap.values())
+      .map((item) => ({
+        code: item.code,
+        name: getCountryName(item.code),
+        flag: getCountryFlag(item.code),
+        visitors: item.visitors.size,
+        views: item.views,
+        pct: uniqueVisitors > 0 ? Math.round((item.visitors.size / uniqueVisitors) * 100) : 0,
+      }))
+      .sort((a, b) => b.visitors - a.visitors)
+      .slice(0, 12)
 
     const totalDeviceViews = devicesMap.Desktop + devicesMap.Mobile
     const deviceBreakdown = [
@@ -447,6 +487,7 @@ export const analytics = {
       estimatedMrr: Number((proSubscribersCount * 12.99).toFixed(2)),
       topPages,
       topSources,
+      topCountries,
       deviceBreakdown,
       dailySeries,
       funnelEvents,

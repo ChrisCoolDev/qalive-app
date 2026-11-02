@@ -90,12 +90,14 @@ model AnalyticsPageView {
   referrer    String?  @default("Direct")
   utmSource   String?  @map("utm_source")
   deviceType  String?  @default("Desktop") @map("device_type")
+  countryCode String?  @default("XX") @map("country_code")
   visitorHash String   @map("visitor_hash")
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@index([createdAt])
   @@index([path])
   @@index([visitorHash])
+  @@index([countryCode])
   @@map("analytics_page_views")
 }
 
