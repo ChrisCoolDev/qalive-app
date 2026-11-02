@@ -127,7 +127,7 @@ const dashboardInformations = computed(() =>
       <div class="mb-[35px] flex items-center justify-between" v-if="user && user.user_metadata">
         <div class="space-y-1">
           <h1 class="text-lg font-medium text-primary flex items-center gap-2">
-            🌤️ Hi {{ user.user_metadata.name.split(' ')[0] }},
+            {{ user.user_metadata.name.split(' ')[0] }}'s Workspace
             <span
               v-if="isPremium"
               class="px-2 py-0.5 bg-[#E85D4A] text-white text-[10px] rounded-full tracking-wider"
