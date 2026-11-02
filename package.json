@@ -20,6 +20,10 @@
     "prisma:migrate:dev:reset": "dotenv -e .env.development -- prisma migrate reset",
     "supabase:deploy:rgl": "supabase functions deploy lemon-squeezy-webhook --project-ref rglgihxyzrgxbopxabiv --no-verify-jwt",
     "supabase:deploy:wjl": "supabase functions deploy lemon-squeezy-webhook --project-ref wjlobyxugqaikseojfew --no-verify-jwt",
+    "test:critical": "node --test tests/critical-flow.test.js",
+    "ticket": "node scripts/ticket.js",
+    "hooks:install": "chmod +x .githooks/* scripts/ticket.js && git config core.hooksPath .githooks",
+    "prepare": "git config core.hooksPath .githooks || true",
     "preview": "vite preview",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"

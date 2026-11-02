@@ -1,0 +1,32 @@
+name: 🚀 Feature / Amélioration Produit
+description: Nouvelle fonctionnalité liée au funnel d'acquisition, activation, conversion ou rétention
+title: "[FEAT] "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: funnel_stage
+    attributes:
+      label: Étape du Funnel impactée
+      options:
+        - "Acquisition (Attirer de nouveaux organisateurs / boucle virale)"
+        - "Activation (Créer une 1ère session et recevoir des questions rapidement)"
+        - "Conversion (Passer du plan Gratuit au plan Pro $12.99)"
+        - "Rétention (Faire revenir l'organisateur à chaque événement)"
+        - "Dette Technique / Stabilité"
+    validations:
+      required: true
+
+  - type: input
+    id: requested_by
+    attributes:
+      label: Demandé par (Prospect / Client / Fondateur)
+      placeholder: Ex: 3 professeurs d'université en démo
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objectif & Critères d'acceptation
+      placeholder: Décrire simplement ce qui doit fonctionner une fois livré
+    validations:
+      required: true
+

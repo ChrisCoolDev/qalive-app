@@ -1,0 +1,57 @@
+name: QALive Critical Flow CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  critical-gate:
+    name: Critical Path & Build Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npm run prisma:generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/qalive
+
+      - name: Run Critical Flow & Revenue Invariant Tests
+        run: npm run test:critical
+
+      - name: Build Production Bundle
+        run: npm run build:prod
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+
+      - name: Verify Zero Secret Leak in Client Bundle
+        run: |
+          if grep -rnE "postgresql://|SUPABASE_SERVICE_ROLE_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET" dist/; then
+            echo "❌ CRITICAL SECURITY ERROR: Backend secret leaked into client bundle!"
+            exit 1
+          fi
+          echo "✅ Client bundle verified clean."
+

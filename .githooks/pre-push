@@ -1,0 +1,14 @@
+#!/bin/sh
+# Hook pre-push : vérifie le parcours critique en ~70ms avant d'envoyer sur GitHub
+
+echo "⚡ Vérification rapide du chemin critique QALive..."
+npm run test:critical --silent
+
+if [ $? -ne 0 ]; then
+  echo "❌ Push annulé : un test du parcours critique a échoué."
+  exit 1
+fi
+
+echo "✅ Chemin critique validé."
+exit 0
+

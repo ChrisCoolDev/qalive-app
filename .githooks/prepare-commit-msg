@@ -1,0 +1,36 @@
+#!/bin/sh
+# Hook Git automatique : lie chaque commit sur develop au ticket actif (#ID)
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+
+# Ne pas modifier les commits de merge
+if [ "$COMMIT_SOURCE" = "merge" ]; then
+  exit 0
+fi
+
+CURRENT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Si le message contient déjà une référence de ticket (#12, Closes #12, Fixes #12), on ne touche à rien
+if echo "$CURRENT_MSG" | grep -qE "(#[0-9]+)"; then
+  exit 0
+fi
+
+# 1. Chercher si un ticket actif a été défini via `npm run ticket <num>`
+TICKET_FILE=".git/CURRENT_TICKET"
+if [ -f "$TICKET_FILE" ]; then
+  TICKET_ID=$(cat "$TICKET_FILE" | tr -d '[:space:]')
+  if [ -n "$TICKET_ID" ]; then
+    printf "%s (#%s)\n" "$CURRENT_MSG" "$TICKET_ID" > "$COMMIT_MSG_FILE"
+    exit 0
+  fi
+fi
+
+# 2. Sinon, chercher si le nom de la branche contient un numéro (ex: feat/12-nom)
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null)
+BRANCH_TICKET=$(echo "$BRANCH_NAME" | sed -nE 's/.*(^|\/|-)([0-9]+)(-|$).*/\2/p')
+
+if [ -n "$BRANCH_TICKET" ]; then
+  printf "%s (#%s)\n" "$CURRENT_MSG" "$BRANCH_TICKET" > "$COMMIT_MSG_FILE"
+fi
+
