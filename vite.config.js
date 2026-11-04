@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
     plugins: [vue(), vueDevTools()],
     server: {
       host: true,
+      allowedHosts: true,
     },
     resolve: {
       alias: {

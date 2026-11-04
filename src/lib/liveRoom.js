@@ -9,6 +9,82 @@ export const LIVE_ROLES = Object.freeze({
   AUDIENCE: 'audience', // participant
 })
 
+export const LIVE_EVENTS = Object.freeze({
+  REACTION: 'reaction', // { key, emoji } envoyé par un participant
+  HIGHLIGHT_QUESTION: 'highlight_question', // { questionId, question } envoyé par le speaker
+})
+
+/**
+ * Catalogue des 5 réactions live (inspiré du moodboard GDG / salih.dev).
+ * Zéro écriture en base : diffusées uniquement en Realtime Broadcast.
+ */
+export const REACTION_CATALOG = Object.freeze([
+  Object.freeze({ key: 'clap', emoji: '👏', label: 'Clap' }),
+  Object.freeze({ key: 'idea', emoji: '💡', label: 'Got it' }),
+  Object.freeze({ key: 'wow', emoji: '🤯', label: 'Wow' }),
+  Object.freeze({ key: 'haha', emoji: '😂', label: 'Haha' }),
+  Object.freeze({ key: 'love', emoji: '❤️', label: 'Love' }),
+])
+
+export const REACTION_THROTTLE_MS = 300
+export const MAX_STAGE_PARTICLES = 40
+
+const VALID_REACTION_KEYS = new Set(REACTION_CATALOG.map((r) => r.key))
+
+export function isValidReactionKey(key) {
+  return typeof key === 'string' && VALID_REACTION_KEYS.has(key)
+}
+
+export function getReactionByKey(key) {
+  return REACTION_CATALOG.find((r) => r.key === key) || null
+}
+
+/**
+ * Limiteur de cadence par appareil (1 réaction / 300ms par défaut)
+ * pour éviter tout spam WebSocket en amphithéâtre.
+ */
+export function createReactionLimiter(cooldownMs = REACTION_THROTTLE_MS, nowFn = () => Date.now()) {
+  let lastSentAt = -Infinity
+  return {
+    tryAcquire() {
+      const now = nowFn()
+      if (now - lastSentAt < cooldownMs) return false
+      lastSentAt = now
+      return true
+    },
+    reset() {
+      lastSentAt = -Infinity
+    },
+  }
+}
+
+/**
+ * Traduit les touches d'un clicker USB standard (Logitech R400, Spotlight…)
+ * ou du clavier en commandes de scène.
+ */
+export function mapStageKeyToAction(key) {
+  switch (key) {
+    case 'ArrowRight':
+    case 'PageDown':
+    case ' ':
+      return 'next'
+    case 'ArrowLeft':
+    case 'PageUp':
+      return 'prev'
+    case 'b':
+    case 'B':
+    case '.':
+      return 'blackout'
+    case 'f':
+    case 'F':
+      return 'fullscreen'
+    case 'Escape':
+      return 'clear'
+    default:
+      return null
+  }
+}
+
 const DEVICE_ID_KEY = 'qalive_device_id'
 
 /** Nom de canal Realtime unique par room. Séparé des canaux existants `questions:*` / `files:*`. */

@@ -39,7 +39,7 @@ CREATE POLICY "Owner can insert live state"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.sessions s
-      WHERE s.id = session_id AND s.user_id = auth.uid()::text
+      WHERE s.id = session_id AND s.user_id::text = auth.uid()::text
     )
   );
 
@@ -50,7 +50,7 @@ CREATE POLICY "Owner can update live state"
   USING (
     EXISTS (
       SELECT 1 FROM public.sessions s
-      WHERE s.id = session_id AND s.user_id = auth.uid()::text
+      WHERE s.id = session_id AND s.user_id::text = auth.uid()::text
     )
   );
 

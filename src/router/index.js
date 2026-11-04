@@ -8,6 +8,7 @@ import CreateSessionView from '@/views/CreateSessionView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AskQuestionView from '@/views/AskQuestionView.vue'
 import SessionQRCodeView from '@/views/SessionQRCodeView.vue'
+import StageView from '@/views/StageView.vue'
 import UserProfileView from '@/views/UserProfileView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 
@@ -66,6 +67,12 @@ const routes = onAnalyticsDomain
         path: '/session/:slug/qrcode',
         name: 'SessionQRCode',
         component: SessionQRCodeView,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: '/stage/:slug',
+        name: 'StageView',
+        component: StageView,
         meta: { requiresAuth: true },
       },
       // Route locale secrète réservée uniquement à l'email du fondateur pour tester en dev
