@@ -1,8 +1,8 @@
 export function exposeDashboardaInformations(totalSessions, totalQuestions, activeSessions) {
   return [
     {
-      name: 'Total events',
-      label: 'All launched sessions.',
+      name: 'Total sessions',
+      label: 'All sessions you launched.',
       statistic: totalSessions,
       icon: `<svg class="group" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M22 3H2" stroke="#161924" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -14,8 +14,8 @@ export function exposeDashboardaInformations(totalSessions, totalQuestions, acti
       imagePath: '/illustrations/totalevents.svg',
     },
     {
-      name: 'Attempted questions ',
-      label: "Audience's engagement.",
+      name: 'Questions received',
+      label: 'Audience engagement.',
       statistic: totalQuestions,
       icon: `<svg class="group" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M20.625 5.149C20.625 4.169 19.831 3.375 18.851 3.375H5.149C4.169 3.375 3.375 4.169 3.375 5.149V18.851C3.375 19.831 4.169 20.625 5.149 20.625H18.851C19.831 20.625 20.625 19.831 20.625 18.851V5.149V5.149Z" stroke="#161924" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -29,8 +29,8 @@ export function exposeDashboardaInformations(totalSessions, totalQuestions, acti
       imagePath: '/illustrations/totalquestions.svg',
     },
     {
-      name: 'Active events',
-      label: 'Current open sessions.',
+      name: 'Live sessions',
+      label: 'Currently open sessions.',
       statistic: activeSessions,
       icon: `<svg class="group" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M7.5447 19.615L11.3707 15.282C11.7027 14.906 12.2887 14.906 12.6207 15.282L16.4467 19.615C16.9207 20.153 16.5377 21 15.8207 21H8.1687C7.4517 21 7.0687 20.153 7.5447 19.615Z" stroke="#161924" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />

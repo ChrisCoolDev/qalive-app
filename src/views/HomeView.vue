@@ -137,7 +137,7 @@ const dashboardInformations = computed(() =>
               >Free</span
             >
           </h1>
-          <p class="text-[14px] text-[#777] font-mabry">Track your audience engagement.</p>
+          <p class="text-[14px] text-[#777] font-mabry">Engage your audience with live Q&amp;A.</p>
         </div>
         <div class="cursor-pointer" @click="redirectToUserProfilePage">
           <img
@@ -190,7 +190,16 @@ const dashboardInformations = computed(() =>
         class="text-center flex flex-col items-center space-y-4 text-gray-500 pt-[70px]"
       >
         <img src="/illustrations/empty2.svg" alt="" class="max-w-[80%] md:max-w-full" />
-        <p class="text-[13px]">You didn't create an event yet</p>
+        <h3 class="text-base font-medium text-gray-900">No sessions yet</h3>
+        <p class="text-[13px] max-w-sm">
+          Create your first Q&amp;A session and share the link or QR code with your audience.
+        </p>
+        <button
+          @click="openModal"
+          class="px-4 py-2 text-xs font-medium text-white bg-[#E85D4A] rounded-[4px] hover:bg-[#d44d3c] transition-colors"
+        >
+          + Create your first session
+        </button>
       </div>
 
       <div v-else-if="showTable">
@@ -199,10 +208,10 @@ const dashboardInformations = computed(() =>
             <thead class="text-[12px] text-gray-600 bg-[#F6F5EF]">
               <tr>
                 <th class="py-3 px-3 font-medium">Brand</th>
-                <th class="py-3 pr-6 max-sm:px-6 font-medium w-max">Event name</th>
+                <th class="py-3 pr-6 max-sm:px-6 font-medium w-max">Session name</th>
                 <th class="py-3 px-6 font-medium">Questions</th>
-                <th class="py-3 px-6 font-medium">Creation</th>
-                <th class="py-3 px-6 font-medium">Expiration</th>
+                <th class="py-3 px-6 font-medium">Created</th>
+                <th class="py-3 px-6 font-medium">Closes at</th>
                 <th class="py-3 px-6 font-medium">Status</th>
                 <th class="py-3 px-6 font-medium text-right">Action</th>
               </tr>
@@ -270,7 +279,7 @@ const dashboardInformations = computed(() =>
                       'px-2 py-1 rounded-[4px] w-max text-[11px] font-medium',
                     ]"
                   >
-                    {{ now < localHourEnsured(session.expires_at) ? 'active' : 'inactive' }}
+                    {{ now < localHourEnsured(session.expires_at) ? 'Live' : 'Ended' }}
                   </div>
                 </td>
 
@@ -410,10 +419,10 @@ const dashboardInformations = computed(() =>
             @click="openUpgradeModal"
             class="text-[13px] underline hover:text-[#E85D4A]"
           >
-            Upgrade to premium plan
+            Upgrade to Pro →
           </button>
           <div class="flex justify-end items-center space-x-4">
-            <span class="text-[13px] text-gray-700">Page {{ page }} on {{ totalPages }}</span>
+            <span class="text-[13px] text-gray-700">Page {{ page }} of {{ totalPages }}</span>
             <button @click="prevPage" :disabled="page === 1" class="disabled:opacity-50">
               <span class="material-symbols-outlined text-tertiary text-[14px]"
                 >keyboard_double_arrow_left</span

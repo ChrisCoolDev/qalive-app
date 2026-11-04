@@ -5,10 +5,15 @@ import QuestionCard from "@/components/basis/questionCard.vue";
 import { useQuestionStore } from "@/stores/questionStore";
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
+import { useLiveRoom } from "@/composables/useLiveRoom";
+import { LIVE_ROLES } from "@/lib/liveRoom";
 
 const questionStore = useQuestionStore();
 const route = useRoute();
 const slug = route.params.slug;
+
+// Live Room (Phase 0) : le speaker voit combien de personnes sont connectées
+const { audienceCount, connected: liveConnected } = useLiveRoom(slug, { role: LIVE_ROLES.HOST });
 
 const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore);
 const { fetchQuestions, subscribeToQuestions, unsubscribeFromQuestions } = questionStore;
@@ -130,9 +135,21 @@ watch(currentSession, (newVal) => {
           ></a>
         </div>
 
-        <p class="text-sm text-[#777]">
-          All the questions of attenders during this presention are displayed here.
-        </p>
+        <div class="flex flex-wrap items-center gap-2">
+          <p class="text-sm text-[#777]">
+            Questions from your audience appear here in real time.
+          </p>
+          <span
+            class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#F6F5EF] text-[12px] text-gray-700"
+            :title="liveConnected ? 'Live connection active' : 'Connecting…'"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full"
+              :class="liveConnected ? 'bg-[#2F8132] animate-pulse' : 'bg-gray-400'"
+            ></span>
+            {{ audienceCount }} {{ audienceCount === 1 ? "participant" : "participants" }} online
+          </span>
+        </div>
       </div>
 
       <!-- Section Documents (Organisateur) -->
@@ -189,7 +206,7 @@ watch(currentSession, (newVal) => {
 
       <div v-else class="text-center pt-[70px] flex flex-col items-center space-y-4">
         <img src="/illustrations/empty1.svg" alt="" class="max-w-[80%] md:max-w-full" />
-        <p class="text-gray-700 text-[13px]">The are no questions yet.</p>
+        <p class="text-gray-700 text-[13px]">No questions yet. Share the QR code to get started.</p>
       </div>
     </div>
 

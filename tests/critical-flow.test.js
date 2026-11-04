@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { parseUTCDate, formatTimeLocal, formatDateLocal } from '../src/utils/dateHelper.js'
 import { getCountryFlag, getCountryName, latLonToSvg } from '../src/utils/geoHelper.js'
 import { cleanAuthUrl } from '../src/utils/urlHelper.js'
+import { DEFAULT_FEATURES, resolveFeatures, isFeatureEnabled } from '../src/lib/featureFlags.js'
+import { liveChannelName, countAudience, getOrCreateDeviceId } from '../src/lib/liveRoom.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -245,6 +247,64 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       const res = cleanAuthUrl(mockLocation, mockHistory)
       assert.equal(res, null, 'Must return null and not touch legitimate hashes')
       assert.equal(replacedUrl, '')
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // 7. PHASE 0 LIVE ROOM : ZÉRO RÉGRESSION SUR LES SESSIONS EXISTANTES
+  // ---------------------------------------------------------------------------
+  describe('7. Live Room Foundations (Phase 0)', () => {
+    it('keeps legacy behavior for sessions without features (Q&A on, new modules off)', () => {
+      for (const legacy of [null, undefined, {}, { features: null }, { features: {} }, { features: [] }]) {
+        assert.equal(isFeatureEnabled(legacy, 'qa'), true)
+        assert.equal(isFeatureEnabled(legacy, 'files'), true)
+        for (const key of ['reactions', 'stage', 'polls', 'slides', 'remote']) {
+          assert.equal(isFeatureEnabled(legacy, key), false, `${key} must be OFF by default`)
+        }
+      }
+      assert.equal(isFeatureEnabled({ features: { polls: true } }, 'polls'), true)
+      assert.equal(isFeatureEnabled({ features: { polls: 'yes' } }, 'polls'), false, 'non-boolean ignored')
+      assert.equal(isFeatureEnabled({ features: {} }, 'unknown_flag'), false)
+      assert.deepEqual(Object.keys(resolveFeatures({ hacked: true })), Object.keys(DEFAULT_FEATURES))
+    })
+
+    it('counts unique audience devices and excludes host/stage from presence', () => {
+      assert.equal(countAudience(null), 0)
+      assert.equal(
+        countAudience({
+          deviceA: [{ role: 'audience' }, { role: 'audience' }], // 2 onglets = 1 personne
+          deviceB: [{ role: 'audience' }],
+          speaker: [{ role: 'host' }],
+          projector: [{ role: 'stage' }],
+          empty: [],
+        }),
+        2,
+      )
+      assert.equal(liveChannelName('my-talk'), 'room:my-talk')
+      assert.throws(() => liveChannelName(''))
+    })
+
+    it('keeps a stable anonymous device id and survives broken storage', () => {
+      const store = new Map()
+      const storage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) }
+      const first = getOrCreateDeviceId(storage)
+      assert.ok(first)
+      assert.equal(getOrCreateDeviceId(storage), first)
+
+      const broken = { getItem: () => { throw new Error('denied') }, setItem: () => {} }
+      assert.ok(getOrCreateDeviceId(broken), 'must not crash in private mode')
+    })
+
+    it('ships an additive-only migration (no DROP TABLE / DROP COLUMN on core tables)', () => {
+      const sql = fs.readFileSync(
+        path.join(ROOT, 'supabase/migrations/20261104_phase0_live_foundations.sql'),
+        'utf8',
+      )
+      assert.doesNotMatch(sql, /DROP\s+TABLE/i)
+      assert.doesNotMatch(sql, /DROP\s+COLUMN/i)
+      assert.doesNotMatch(sql, /RENAME/i)
+      assert.match(sql, /ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '\{\}'/)
+      assert.match(sql, /ENABLE ROW LEVEL SECURITY/)
     })
   })
 })
