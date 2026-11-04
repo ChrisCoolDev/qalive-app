@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 import { parseUTCDate, formatTimeLocal, formatDateLocal } from '../src/utils/dateHelper.js'
 import { getCountryFlag, getCountryName, latLonToSvg } from '../src/utils/geoHelper.js'
+import { cleanAuthUrl } from '../src/utils/urlHelper.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -167,6 +168,83 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
         viteConfig.includes("'VITE_'"),
         'vite.config.js must restrict loadEnv to VITE_ prefix to prevent leaking DATABASE_URL',
       )
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // 6. SECURITY & PRIVACY : SANITIZATION OF SUPABASE AUTH TOKENS IN URL
+  // ---------------------------------------------------------------------------
+  describe('6. URL Sanitization (Anti-Leak Token / OAuth)', () => {
+    it('strips #access_token and #refresh_token fragments from browser URL', () => {
+      let replacedUrl = ''
+      const mockLocation = {
+        href: 'https://app.qalive.ink/overview#access_token=eyJhbGciOiJIUzI1Ni...&expires_at=1730000000&refresh_token=secret_refresh&token_type=bearer',
+        hash: '#access_token=eyJhbGciOiJIUzI1Ni...&expires_at=1730000000&refresh_token=secret_refresh&token_type=bearer',
+      }
+      const mockHistory = {
+        state: { user: 'test' },
+        replaceState: (_state, _title, url) => {
+          replacedUrl = url
+        },
+      }
+
+      const res = cleanAuthUrl(mockLocation, mockHistory)
+      assert.equal(res, '/overview')
+      assert.equal(replacedUrl, '/overview')
+    })
+
+    it('strips ?code= PKCE query param but keeps legitimate query params', () => {
+      let replacedUrl = ''
+      const mockLocation = {
+        href: 'https://app.qalive.ink/overview?code=supabase_pkce_code_123&utm_source=twitter',
+        hash: '',
+      }
+      const mockHistory = {
+        state: {},
+        replaceState: (_state, _title, url) => {
+          replacedUrl = url
+        },
+      }
+
+      const res = cleanAuthUrl(mockLocation, mockHistory)
+      assert.equal(res, '/overview?utm_source=twitter')
+      assert.equal(replacedUrl, '/overview?utm_source=twitter')
+    })
+
+    it('strips checkout and order_id params from Lemon Squeezy redirects', () => {
+      let replacedUrl = ''
+      const mockLocation = {
+        href: 'https://app.qalive.ink/overview?checkout=success&order_id=987654',
+        hash: '',
+      }
+      const mockHistory = {
+        state: {},
+        replaceState: (_state, _title, url) => {
+          replacedUrl = url
+        },
+      }
+
+      const res = cleanAuthUrl(mockLocation, mockHistory)
+      assert.equal(res, '/overview')
+      assert.equal(replacedUrl, '/overview')
+    })
+
+    it('leaves non-auth URLs and standard anchor hashes completely untouched', () => {
+      let replacedUrl = ''
+      const mockLocation = {
+        href: 'https://app.qalive.ink/overview#my-section',
+        hash: '#my-section',
+      }
+      const mockHistory = {
+        state: {},
+        replaceState: (_state, _title, url) => {
+          replacedUrl = url
+        },
+      }
+
+      const res = cleanAuthUrl(mockLocation, mockHistory)
+      assert.equal(res, null, 'Must return null and not touch legitimate hashes')
+      assert.equal(replacedUrl, '')
     })
   })
 })
