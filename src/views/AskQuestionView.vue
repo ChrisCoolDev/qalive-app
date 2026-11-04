@@ -8,9 +8,14 @@ import FileList from "@/components/files/FileList.vue";
 import { parseUTCDate } from "@/utils/dateHelper";
 import { analytics } from "@/lib/analytics";
 import { FREE_QUESTION_LIMIT } from "@/stores/questionStore";
+import { useLiveRoom } from "@/composables/useLiveRoom";
+import { LIVE_ROLES } from "@/lib/liveRoom";
 
 const route = useRoute();
 const sessionSlug = route.params.slug;
+
+// Live Room (Phase 0) : le participant signale sa présence, rejoint uniquement si la session est valide
+const liveRoom = useLiveRoom(sessionSlug, { role: LIVE_ROLES.AUDIENCE, autoJoin: false });
 
 const questionText = ref("");
 const authorName = ref("");
@@ -195,6 +200,7 @@ watch(sessionId, (newId) => {
   if (newId) {
     fileStore.fetchFiles(newId);
     fileStore.subscribeToFiles(newId);
+    liveRoom.join();
   }
 });
 

@@ -22,13 +22,32 @@ model Session {
   expiresAt   DateTime?     @map("expires_at")
   logoUrl     String?       @map("logo_url")
 
+  // Feature flags Live Room (Phase 0). '{}' = comportement historique Q&A.
+  features    Json          @default("{}")
+
   // Le lien vers l'utilisateur Supabase (un UUID stocké comme String)
   userId      String        @map("user_id")
 
   questions   Question[]
   files       SessionFile[]
+  liveState   SessionLiveState?
 
   @@map("sessions")
+}
+
+// État live "reprenable" d'une room (slide courant, sondage actif, question mise en avant).
+// Les événements éphémères (réactions, clics) passent par Realtime Broadcast, pas ici.
+model SessionLiveState {
+  sessionId             Int       @id @map("session_id")
+  currentSlide          Int       @default(1) @map("current_slide")
+  activePollId          BigInt?   @map("active_poll_id")
+  highlightedQuestionId Int?      @map("highlighted_question_id")
+  updatedAt             DateTime  @default(now()) @map("updated_at")
+
+  session               Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  highlightedQuestion   Question? @relation(fields: [highlightedQuestionId], references: [id], onDelete: SetNull)
+
+  @@map("session_live_state")
 }
 
 // Modèle pour les questions posées par l'audience
@@ -43,6 +62,8 @@ model Question {
   // Relation avec la table Session
   sessionId   Int      @map("session_id")
   session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  highlightedIn SessionLiveState[]
 
   @@map("questions")
 }
