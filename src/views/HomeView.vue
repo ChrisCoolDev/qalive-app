@@ -10,6 +10,7 @@ import { formatTimeLocal, formatDateLocal, parseUTCDate } from '@/utils/dateHelp
 import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 import UpgradePlanModal from '@/components/basis/UpgradePlanModal.vue'
 import { analytics } from '@/lib/analytics'
+import { cleanAuthUrl } from '@/utils/urlHelper'
 
 const logoVariants = [
   '/logos/logo-variants/logo_variant_1.png',
@@ -88,10 +89,7 @@ async function loadAllSessions() {
 }
 
 onMounted(async () => {
-  const url = new URL(window.location.href)
-  if (url.searchParams.has('checkout') || url.searchParams.has('order_id')) {
-    window.history.replaceState({}, document.title, window.location.pathname)
-  }
+  cleanAuthUrl()
 
   await fetchDashboardData()
   await loadAllSessions()

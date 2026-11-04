@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue'
 import WorldMapCard from '@/components/basis/WorldMapCard.vue'
 import { supabase } from '@/lib/supabase'
 import { analytics, isFounderEmail } from '@/lib/analytics'
+import { cleanAuthUrl } from '@/utils/urlHelper'
 
 const selectedDays = ref(7)
 const loading = ref(true)
@@ -135,6 +136,7 @@ onMounted(async () => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
+  cleanAuthUrl()
   currentUser.value = session?.user ?? null
   authLoading.value = false
 

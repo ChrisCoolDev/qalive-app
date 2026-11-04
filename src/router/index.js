@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { analytics, isAnalyticsSubdomain, isFounderEmail } from '@/lib/analytics'
+import { cleanAuthUrl } from '@/utils/urlHelper'
 import HomeView from '../views/HomeView.vue'
 import QuestionsView from '@/views/QuestionsView.vue'
 import CreateSessionView from '@/views/CreateSessionView.vue'
@@ -88,12 +89,18 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   // Sur analytic.qalive.online, AnalyticsView gère lui-même son écran de connexion fondateur
   if (onAnalyticsDomain) {
+    cleanAuthUrl()
     return next()
   }
 
   const {
     data: { session },
   } = await supabase.auth.getSession()
+
+  // Nettoie l'URL dès que Supabase a lu les tokens OAuth
+  if (session) {
+    cleanAuthUrl()
+  }
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const requiresFounder = to.matched.some((record) => record.meta.requiresFounder)
