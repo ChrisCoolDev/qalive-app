@@ -8,7 +8,16 @@ import { parseUTCDate, formatTimeLocal, formatDateLocal } from '../src/utils/dat
 import { getCountryFlag, getCountryName, latLonToSvg } from '../src/utils/geoHelper.js'
 import { cleanAuthUrl } from '../src/utils/urlHelper.js'
 import { DEFAULT_FEATURES, resolveFeatures, isFeatureEnabled } from '../src/lib/featureFlags.js'
-import { liveChannelName, countAudience, getOrCreateDeviceId } from '../src/lib/liveRoom.js'
+import {
+  liveChannelName,
+  countAudience,
+  getOrCreateDeviceId,
+  REACTION_CATALOG,
+  isValidReactionKey,
+  getReactionByKey,
+  createReactionLimiter,
+  mapStageKeyToAction,
+} from '../src/lib/liveRoom.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -254,15 +263,18 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
   // 7. PHASE 0 LIVE ROOM : ZÉRO RÉGRESSION SUR LES SESSIONS EXISTANTES
   // ---------------------------------------------------------------------------
   describe('7. Live Room Foundations (Phase 0)', () => {
-    it('keeps legacy behavior for sessions without features (Q&A on, new modules off)', () => {
+    it('keeps legacy behavior for sessions without features (Q&A + Phase 1 on, future modules off)', () => {
       for (const legacy of [null, undefined, {}, { features: null }, { features: {} }, { features: [] }]) {
         assert.equal(isFeatureEnabled(legacy, 'qa'), true)
         assert.equal(isFeatureEnabled(legacy, 'files'), true)
-        for (const key of ['reactions', 'stage', 'polls', 'slides', 'remote']) {
+        assert.equal(isFeatureEnabled(legacy, 'reactions'), true)
+        assert.equal(isFeatureEnabled(legacy, 'stage'), true)
+        for (const key of ['polls', 'slides', 'remote']) {
           assert.equal(isFeatureEnabled(legacy, key), false, `${key} must be OFF by default`)
         }
       }
       assert.equal(isFeatureEnabled({ features: { polls: true } }, 'polls'), true)
+      assert.equal(isFeatureEnabled({ features: { reactions: false } }, 'reactions'), false)
       assert.equal(isFeatureEnabled({ features: { polls: 'yes' } }, 'polls'), false, 'non-boolean ignored')
       assert.equal(isFeatureEnabled({ features: {} }, 'unknown_flag'), false)
       assert.deepEqual(Object.keys(resolveFeatures({ hacked: true })), Object.keys(DEFAULT_FEATURES))
@@ -305,6 +317,40 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.doesNotMatch(sql, /RENAME/i)
       assert.match(sql, /ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '\{\}'/)
       assert.match(sql, /ENABLE ROW LEVEL SECURITY/)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // 8. PHASE 1 : RÉACTIONS LIVE (THROTTLE) & ÉCRAN DE SCÈNE / CLICKER USB
+  // ---------------------------------------------------------------------------
+  describe('8. Live Reactions & Stage View (Phase 1)', () => {
+    it('validates the 5 reaction keys and throttles spam at 300ms per device', () => {
+      assert.equal(REACTION_CATALOG.length, 5)
+      assert.equal(isValidReactionKey('love'), true)
+      assert.equal(isValidReactionKey('clap'), true)
+      assert.equal(isValidReactionKey('malicious_payload'), false)
+      assert.equal(getReactionByKey('love')?.emoji, '❤️')
+
+      let clock = 1000
+      const limiter = createReactionLimiter(300, () => clock)
+      assert.equal(limiter.tryAcquire(), true, 'first tap allowed')
+      clock = 1150
+      assert.equal(limiter.tryAcquire(), false, 'tap after 150ms blocked')
+      clock = 1300
+      assert.equal(limiter.tryAcquire(), true, 'tap after 300ms allowed')
+    })
+
+    it('maps standard USB clicker and keyboard keys to stage actions', () => {
+      assert.equal(mapStageKeyToAction('PageDown'), 'next')
+      assert.equal(mapStageKeyToAction('ArrowRight'), 'next')
+      assert.equal(mapStageKeyToAction(' '), 'next')
+      assert.equal(mapStageKeyToAction('PageUp'), 'prev')
+      assert.equal(mapStageKeyToAction('ArrowLeft'), 'prev')
+      assert.equal(mapStageKeyToAction('b'), 'blackout')
+      assert.equal(mapStageKeyToAction('.'), 'blackout')
+      assert.equal(mapStageKeyToAction('f'), 'fullscreen')
+      assert.equal(mapStageKeyToAction('Escape'), 'clear')
+      assert.equal(mapStageKeyToAction('a'), null)
     })
   })
 })

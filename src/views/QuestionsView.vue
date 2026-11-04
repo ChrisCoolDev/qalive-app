@@ -5,15 +5,42 @@ import QuestionCard from "@/components/basis/questionCard.vue";
 import { useQuestionStore } from "@/stores/questionStore";
 import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
+import { supabase } from "@/lib/supabase";
 import { useLiveRoom } from "@/composables/useLiveRoom";
-import { LIVE_ROLES } from "@/lib/liveRoom";
+import { LIVE_ROLES, LIVE_EVENTS, isValidReactionKey } from "@/lib/liveRoom";
 
 const questionStore = useQuestionStore();
 const route = useRoute();
 const slug = route.params.slug;
 
-// Live Room (Phase 0) : le speaker voit combien de personnes sont connectées
-const { audienceCount, connected: liveConnected } = useLiveRoom(slug, { role: LIVE_ROLES.HOST });
+// Live Room (Phases 0 & 1) : compteur participants + réactions + synchronisation avec l'écran de scène
+const {
+  audienceCount,
+  connected: liveConnected,
+  send: sendLiveEvent,
+  on: onLiveEvent,
+} = useLiveRoom(slug, { role: LIVE_ROLES.HOST });
+
+const totalReactions = ref(0);
+const offReaction = onLiveEvent(LIVE_EVENTS.REACTION, (payload) => {
+  if (isValidReactionKey(payload?.key)) {
+    totalReactions.value += 1;
+  }
+});
+
+async function broadcastHighlightedQuestion(question) {
+  if (!question?.id) return;
+  sendLiveEvent(LIVE_EVENTS.HIGHLIGHT_QUESTION, { questionId: question.id });
+  if (currentSession.value?.id) {
+    await supabase.from("session_live_state").upsert(
+      {
+        session_id: currentSession.value.id,
+        highlighted_question_id: question.id,
+      },
+      { onConflict: "session_id" },
+    );
+  }
+}
 
 const { questions, currentSession, loading, errorMsg } = storeToRefs(questionStore);
 const { fetchQuestions, subscribeToQuestions, unsubscribeFromQuestions } = questionStore;
@@ -23,12 +50,13 @@ const selectedQuestion = ref(null);
 const selectedQuestionIndex = ref(null);
 const showQuestionModal = ref(false);
 
-// Ouvre le modal sur la question choisie et sauvegarde son index
+// Ouvre le modal sur la question choisie et la projette sur l'écran de scène (/stage/:slug)
 function openQuestionModal(question) {
   const idx = questions.value.findIndex((q) => q.id === question.id);
   selectedQuestionIndex.value = idx;
   selectedQuestion.value = question;
   showQuestionModal.value = true;
+  broadcastHighlightedQuestion(question);
 }
 
 // Change la question affichée selon l'index sans dépasser les limites
@@ -36,6 +64,7 @@ function showQuestionByIndex(index) {
   if (index >= 0 && index < questions.value.length) {
     selectedQuestionIndex.value = index;
     selectedQuestion.value = questions.value[index];
+    broadcastHighlightedQuestion(selectedQuestion.value);
   }
 }
 
@@ -63,6 +92,7 @@ onMounted(async () => {
 // Nettoyage à la destruction du composant
 onUnmounted(() => {
   window.removeEventListener("keydown", handleArrowKey);
+  offReaction();
   unsubscribeFromQuestions();
 });
 
@@ -87,52 +117,65 @@ watch(currentSession, (newVal) => {
   <AppLayout>
     <div class="mt-[28px] space-y-6">
       <div class="mb-[35px] space-y-[10px]" v-if="currentSession">
-        <div class="flex items-end space-x-2">
-          <h1 class="text-base md:text-lg font-medium text-primary leading-[100%]">
-            Session : <span class="font-semibold">{{ currentSession.name }}</span>
-          </h1>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-end space-x-2">
+            <h1 class="text-base md:text-lg font-medium text-primary leading-[100%]">
+              Session : <span class="font-semibold">{{ currentSession.name }}</span>
+            </h1>
+            <a
+              :href="`/session/${slug}/qrcode`"
+              title="Open QR Code page"
+              class="underline text-[13px] leading-[100%]"
+              ><svg
+                class="group"
+                width="18"
+                height="18"
+                viewBox="0 0 25 25"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12.0047"
+                  cy="12.005"
+                  r="9.00375"
+                  stroke="#161924"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M10.0039 12.005H14.0056"
+                  stroke="#161924"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M13.5059 9.00378H14.0061C15.6636 9.00378 17.0073 10.3475 17.0073 12.005V12.005C17.0073 13.6626 15.6636 15.0063 14.0061 15.0063H13.5059"
+                  stroke="#161924"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M10.5044 15.0063H10.0042C8.34664 15.0063 7.00293 13.6626 7.00293 12.005V12.005C7.00293 10.3475 8.34664 9.00378 10.0042 9.00378H10.5044"
+                  stroke="#161924"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                /></svg
+            ></a>
+          </div>
+
           <a
-            :href="`/session/${slug}/qrcode`"
-            class="underline text-[13px] leading-[100%]"
-            ><svg
-              class="group"
-              width="18"
-              height="18"
-              viewBox="0 0 25 25"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="12.0047"
-                cy="12.005"
-                r="9.00375"
-                stroke="#161924"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M10.0039 12.005H14.0056"
-                stroke="#161924"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M13.5059 9.00378H14.0061C15.6636 9.00378 17.0073 10.3475 17.0073 12.005V12.005C17.0073 13.6626 15.6636 15.0063 14.0061 15.0063H13.5059"
-                stroke="#161924"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M10.5044 15.0063H10.0042C8.34664 15.0063 7.00293 13.6626 7.00293 12.005V12.005C7.00293 10.3475 8.34664 9.00378 10.0042 9.00378H10.5044"
-                stroke="#161924"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              /></svg
-          ></a>
+            :href="`/stage/${slug}`"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[4px] bg-[#E85D4A] text-white text-xs font-medium hover:bg-[#d44d3c] transition-colors shadow-sm"
+          >
+            <span>🖥️</span>
+            <span>Open Stage View</span>
+          </a>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
@@ -148,6 +191,13 @@ watch(currentSession, (newVal) => {
               :class="liveConnected ? 'bg-[#2F8132] animate-pulse' : 'bg-gray-400'"
             ></span>
             {{ audienceCount }} {{ audienceCount === 1 ? "participant" : "participants" }} online
+          </span>
+          <span
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F6F5EF] text-[12px] text-gray-700"
+            title="Live audience reactions"
+          >
+            <span>❤️</span>
+            <span>{{ totalReactions }}</span>
           </span>
         </div>
       </div>

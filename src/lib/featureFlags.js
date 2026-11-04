@@ -9,9 +9,9 @@
 export const DEFAULT_FEATURES = Object.freeze({
   qa: true, // Questions/Réponses (historique, toujours actif)
   files: true, // Documents partagés (historique, toujours actif)
-  presence: true, // Compteur de participants (invisible pour le public, sans risque)
-  reactions: false, // Phase 1
-  stage: false, // Phase 1 : écran de scène /stage/:slug
+  presence: true, // Compteur de participants (Phase 0)
+  reactions: true, // Phase 1 : barre de réactions live (Broadcast, 0 écriture BDD)
+  stage: true, // Phase 1 : écran de scène /stage/:slug
   polls: false, // Phase 2
   slides: false, // Phase 3
   remote: false, // Phase 4
