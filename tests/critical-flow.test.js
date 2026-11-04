@@ -353,4 +353,40 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.equal(mapStageKeyToAction('a'), null)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // 9. CLOUDFLARE PAGES HOSTING CONFIGURATION & SPA ROUTING
+  // ---------------------------------------------------------------------------
+  describe('9. Cloudflare Pages Hosting & SPA Fallback', () => {
+    it('provides public/_redirects for HTML5 History mode SPA routing', () => {
+      const redirectsPath = path.join(ROOT, 'public/_redirects')
+      assert.ok(fs.existsSync(redirectsPath), 'public/_redirects must exist for Cloudflare Pages')
+      const content = fs.readFileSync(redirectsPath, 'utf8')
+      assert.match(
+        content,
+        /\/\*\s+\/index\.html\s+200/,
+        'public/_redirects must rewrite all paths to /index.html with 200 status',
+      )
+    })
+
+    it('provides public/_headers with immutable asset cache and security headers', () => {
+      const headersPath = path.join(ROOT, 'public/_headers')
+      assert.ok(fs.existsSync(headersPath), 'public/_headers must exist for Cloudflare Pages')
+      const content = fs.readFileSync(headersPath, 'utf8')
+      assert.match(content, /\/assets\/\*/)
+      assert.match(content, /immutable/)
+      assert.match(content, /X-Content-Type-Options:\s*nosniff/)
+    })
+
+    it('defines .nvmrc and package.json build script for Cloudflare build runner', () => {
+      const nvmrcPath = path.join(ROOT, '.nvmrc')
+      assert.ok(fs.existsSync(nvmrcPath), '.nvmrc must exist to enforce Node version')
+      const nodeVersion = fs.readFileSync(nvmrcPath, 'utf8').trim()
+      assert.match(nodeVersion, /^20|^22/, 'Node version must be 20 or 22')
+
+      const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
+      assert.ok(pkg.scripts?.build, 'package.json must define a default "build" script')
+      assert.match(pkg.scripts.build, /vite build/)
+    })
+  })
 })

@@ -1,0 +1,17 @@
+# Cloudflare Pages Headers Configuration
+
+# Assets versionnés par Vite (hash unique dans le nom de fichier) : cache long terme immuable
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Polices de caractères
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# Fichiers HTML et racine : revalidation immédiate à chaque déploiement
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
