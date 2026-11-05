@@ -46,10 +46,11 @@ const maxDailyViews = computed(() => {
 })
 
 async function loginAsFounder() {
+  const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/analytics` : undefined
   await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo,
     },
   })
 }

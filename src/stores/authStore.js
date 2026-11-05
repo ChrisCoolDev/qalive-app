@@ -16,8 +16,13 @@ export const useAuthStore = defineStore('auth', () => {
     errorMsg.value = ''
     analytics.trackEvent('login_initiated', { provider: 'google' })
 
+    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/` : undefined
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo,
+      },
     })
     if (error) {
       errorMsg.value = error.message

@@ -260,6 +260,12 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.equal(res, null, 'Must return null and not touch legitimate hashes')
       assert.equal(replacedUrl, '')
     })
+
+    it('ensures OAuth login specifies dynamic redirectTo matching current origin', () => {
+      const authStoreCode = fs.readFileSync(path.resolve(__dirname, '../src/stores/authStore.js'), 'utf8')
+      assert.match(authStoreCode, /options:\s*\{\s*redirectTo/, 'authStore must provide options.redirectTo to prevent Supabase localhost fallback')
+      assert.match(authStoreCode, /window\.location\.origin/, 'redirectTo must dynamically match the runtime window.location.origin')
+    })
   })
 
   // ---------------------------------------------------------------------------
