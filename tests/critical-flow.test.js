@@ -164,11 +164,14 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
   // 5. SECURITY : ZERO DATABASE_URL LEAK IN VITE CONFIG
   // ---------------------------------------------------------------------------
   describe('5. Vite Config Environment Security', () => {
-    it('loads only VITE_ prefixed variables in vite.config.js', () => {
-      const viteConfig = fs.readFileSync(path.join(ROOT, 'vite.config.js'), 'utf8')
+    it('loads only VITE_ prefixed variables in vite config', () => {
+      const configPath = fs.existsSync(path.join(ROOT, 'vite.config.mjs'))
+        ? path.join(ROOT, 'vite.config.mjs')
+        : path.join(ROOT, 'vite.config.js')
+      const viteConfig = fs.readFileSync(configPath, 'utf8')
       assert.ok(
         viteConfig.includes("'VITE_'"),
-        'vite.config.js must restrict loadEnv to VITE_ prefix to prevent leaking DATABASE_URL',
+        'vite config must restrict loadEnv to VITE_ prefix to prevent leaking DATABASE_URL',
       )
     })
   })
