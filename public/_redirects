@@ -1,5 +1,0 @@
-# Cloudflare Pages SPA Routing
-# Redirige toutes les requêtes vers index.html avec un statut 200 (HTML5 History Mode)
-# Permet à Vue Router de gérer les routes côté client (/overview, /ask/:slug, /stage/:slug, etc.)
-/*    /index.html   200
-

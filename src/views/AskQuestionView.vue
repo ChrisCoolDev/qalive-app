@@ -9,18 +9,13 @@ import { parseUTCDate } from "@/utils/dateHelper";
 import { analytics } from "@/lib/analytics";
 import { FREE_QUESTION_LIMIT } from "@/stores/questionStore";
 import { useLiveRoom } from "@/composables/useLiveRoom";
-import { LIVE_ROLES, LIVE_EVENTS } from "@/lib/liveRoom";
-import ReactionBar from "@/components/live/ReactionBar.vue";
+import { LIVE_ROLES } from "@/lib/liveRoom";
 
 const route = useRoute();
 const sessionSlug = route.params.slug;
 
-// Live Room (Phases 0 & 1) : présence + envoi des réactions live (Broadcast, 0 écriture BDD)
+// Live Room (Phase 0) : le participant signale sa présence, rejoint uniquement si la session est valide
 const liveRoom = useLiveRoom(sessionSlug, { role: LIVE_ROLES.AUDIENCE, autoJoin: false });
-
-function handleAudienceReaction({ key, emoji }) {
-  liveRoom.send(LIVE_EVENTS.REACTION, { key, emoji });
-}
 
 const questionText = ref("");
 const authorName = ref("");
@@ -355,7 +350,7 @@ onUnmountedAsk(() => {
           </div>
         </div>
 
-        <div v-else class="space-y-6 pb-24">
+        <div v-else class="space-y-6">
           <div>
             <h1 class="text-xxl font-semibold text-center mb-2">Ask your questions</h1>
             <p class="text-gray-700 text-center text-sm">You can ask the questions you want during the presentation</p>
@@ -433,9 +428,6 @@ onUnmountedAsk(() => {
               <span>⚡ Powered by <strong>QALive</strong></span>
             </a>
           </div>
-
-          <!-- Barre de réactions live fixe (Phase 1 — 0 écriture en base) -->
-          <ReactionBar :disabled="sessionExpired" @react="handleAudienceReaction" />
         </div>
       </div>
     </div>

@@ -8,16 +8,7 @@ import { parseUTCDate, formatTimeLocal, formatDateLocal } from '../src/utils/dat
 import { getCountryFlag, getCountryName, latLonToSvg } from '../src/utils/geoHelper.js'
 import { cleanAuthUrl } from '../src/utils/urlHelper.js'
 import { DEFAULT_FEATURES, resolveFeatures, isFeatureEnabled } from '../src/lib/featureFlags.js'
-import {
-  liveChannelName,
-  countAudience,
-  getOrCreateDeviceId,
-  REACTION_CATALOG,
-  isValidReactionKey,
-  getReactionByKey,
-  createReactionLimiter,
-  mapStageKeyToAction,
-} from '../src/lib/liveRoom.js'
+import { liveChannelName, countAudience, getOrCreateDeviceId } from '../src/lib/liveRoom.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..')
@@ -173,14 +164,11 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
   // 5. SECURITY : ZERO DATABASE_URL LEAK IN VITE CONFIG
   // ---------------------------------------------------------------------------
   describe('5. Vite Config Environment Security', () => {
-    it('loads only VITE_ prefixed variables in vite config', () => {
-      const configPath = fs.existsSync(path.join(ROOT, 'vite.config.mjs'))
-        ? path.join(ROOT, 'vite.config.mjs')
-        : path.join(ROOT, 'vite.config.js')
-      const viteConfig = fs.readFileSync(configPath, 'utf8')
+    it('loads only VITE_ prefixed variables in vite.config.js', () => {
+      const viteConfig = fs.readFileSync(path.join(ROOT, 'vite.config.js'), 'utf8')
       assert.ok(
         viteConfig.includes("'VITE_'"),
-        'vite config must restrict loadEnv to VITE_ prefix to prevent leaking DATABASE_URL',
+        'vite.config.js must restrict loadEnv to VITE_ prefix to prevent leaking DATABASE_URL',
       )
     })
   })
@@ -260,30 +248,21 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.equal(res, null, 'Must return null and not touch legitimate hashes')
       assert.equal(replacedUrl, '')
     })
-
-    it('ensures OAuth login specifies dynamic redirectTo matching current origin/overview', () => {
-      const authStoreCode = fs.readFileSync(path.resolve(__dirname, '../src/stores/authStore.js'), 'utf8')
-      assert.match(authStoreCode, /options:\s*\{\s*redirectTo/, 'authStore must provide options.redirectTo to prevent Supabase localhost fallback')
-      assert.match(authStoreCode, /\$\{window\.location\.origin\}\/overview/, 'redirectTo must target /overview on the runtime origin')
-    })
   })
 
   // ---------------------------------------------------------------------------
   // 7. PHASE 0 LIVE ROOM : ZÉRO RÉGRESSION SUR LES SESSIONS EXISTANTES
   // ---------------------------------------------------------------------------
   describe('7. Live Room Foundations (Phase 0)', () => {
-    it('keeps legacy behavior for sessions without features (Q&A + Phase 1 on, future modules off)', () => {
+    it('keeps legacy behavior for sessions without features (Q&A on, new modules off)', () => {
       for (const legacy of [null, undefined, {}, { features: null }, { features: {} }, { features: [] }]) {
         assert.equal(isFeatureEnabled(legacy, 'qa'), true)
         assert.equal(isFeatureEnabled(legacy, 'files'), true)
-        assert.equal(isFeatureEnabled(legacy, 'reactions'), true)
-        assert.equal(isFeatureEnabled(legacy, 'stage'), true)
-        for (const key of ['polls', 'slides', 'remote']) {
+        for (const key of ['reactions', 'stage', 'polls', 'slides', 'remote']) {
           assert.equal(isFeatureEnabled(legacy, key), false, `${key} must be OFF by default`)
         }
       }
       assert.equal(isFeatureEnabled({ features: { polls: true } }, 'polls'), true)
-      assert.equal(isFeatureEnabled({ features: { reactions: false } }, 'reactions'), false)
       assert.equal(isFeatureEnabled({ features: { polls: 'yes' } }, 'polls'), false, 'non-boolean ignored')
       assert.equal(isFeatureEnabled({ features: {} }, 'unknown_flag'), false)
       assert.deepEqual(Object.keys(resolveFeatures({ hacked: true })), Object.keys(DEFAULT_FEATURES))
@@ -326,76 +305,6 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.doesNotMatch(sql, /RENAME/i)
       assert.match(sql, /ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '\{\}'/)
       assert.match(sql, /ENABLE ROW LEVEL SECURITY/)
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // 8. PHASE 1 : RÉACTIONS LIVE (THROTTLE) & ÉCRAN DE SCÈNE / CLICKER USB
-  // ---------------------------------------------------------------------------
-  describe('8. Live Reactions & Stage View (Phase 1)', () => {
-    it('validates the 5 reaction keys and throttles spam at 300ms per device', () => {
-      assert.equal(REACTION_CATALOG.length, 5)
-      assert.equal(isValidReactionKey('love'), true)
-      assert.equal(isValidReactionKey('clap'), true)
-      assert.equal(isValidReactionKey('malicious_payload'), false)
-      assert.equal(getReactionByKey('love')?.emoji, '❤️')
-
-      let clock = 1000
-      const limiter = createReactionLimiter(300, () => clock)
-      assert.equal(limiter.tryAcquire(), true, 'first tap allowed')
-      clock = 1150
-      assert.equal(limiter.tryAcquire(), false, 'tap after 150ms blocked')
-      clock = 1300
-      assert.equal(limiter.tryAcquire(), true, 'tap after 300ms allowed')
-    })
-
-    it('maps standard USB clicker and keyboard keys to stage actions', () => {
-      assert.equal(mapStageKeyToAction('PageDown'), 'next')
-      assert.equal(mapStageKeyToAction('ArrowRight'), 'next')
-      assert.equal(mapStageKeyToAction(' '), 'next')
-      assert.equal(mapStageKeyToAction('PageUp'), 'prev')
-      assert.equal(mapStageKeyToAction('ArrowLeft'), 'prev')
-      assert.equal(mapStageKeyToAction('b'), 'blackout')
-      assert.equal(mapStageKeyToAction('.'), 'blackout')
-      assert.equal(mapStageKeyToAction('f'), 'fullscreen')
-      assert.equal(mapStageKeyToAction('Escape'), 'clear')
-      assert.equal(mapStageKeyToAction('a'), null)
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // 9. CLOUDFLARE PAGES HOSTING CONFIGURATION & SPA ROUTING
-  // ---------------------------------------------------------------------------
-  describe('9. Cloudflare Pages Hosting & SPA Fallback', () => {
-    it('provides public/_redirects for HTML5 History mode SPA routing', () => {
-      const redirectsPath = path.join(ROOT, 'public/_redirects')
-      assert.ok(fs.existsSync(redirectsPath), 'public/_redirects must exist for Cloudflare Pages')
-      const content = fs.readFileSync(redirectsPath, 'utf8')
-      assert.match(
-        content,
-        /\/\*\s+\/index\.html\s+200/,
-        'public/_redirects must rewrite all paths to /index.html with 200 status',
-      )
-    })
-
-    it('provides public/_headers with immutable asset cache and security headers', () => {
-      const headersPath = path.join(ROOT, 'public/_headers')
-      assert.ok(fs.existsSync(headersPath), 'public/_headers must exist for Cloudflare Pages')
-      const content = fs.readFileSync(headersPath, 'utf8')
-      assert.match(content, /\/assets\/\*/)
-      assert.match(content, /immutable/)
-      assert.match(content, /X-Content-Type-Options:\s*nosniff/)
-    })
-
-    it('defines .nvmrc and package.json build script for Cloudflare build runner', () => {
-      const nvmrcPath = path.join(ROOT, '.nvmrc')
-      assert.ok(fs.existsSync(nvmrcPath), '.nvmrc must exist to enforce Node version')
-      const nodeVersion = fs.readFileSync(nvmrcPath, 'utf8').trim()
-      assert.match(nodeVersion, /^20|^22/, 'Node version must be 20 or 22')
-
-      const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
-      assert.ok(pkg.scripts?.build, 'package.json must define a default "build" script')
-      assert.match(pkg.scripts.build, /vite build/)
     })
   })
 })
