@@ -132,7 +132,7 @@ export const useSessionStore = defineStore('session', () => {
     }
   }
 
-  async function createSession() {
+  async function createSession(options = {}) {
     if (!isPremium.value && totalSessions.value >= 3) {
       showModal.value = false
       showUpgradePlanModal.value = true
@@ -157,7 +157,8 @@ export const useSessionStore = defineStore('session', () => {
         ? customDuration.value * 60 * 60 * 1000
         : FREE_SESSION_DURATION_MS
 
-      const expiresAt = new Date(Date.now() + finalDurationMs).toISOString()
+      const startDate = options.startsAt instanceof Date ? options.startsAt : new Date()
+      const expiresAt = new Date(startDate.getTime() + finalDurationMs).toISOString()
 
       let logoUrl = null
       if (isPremium.value && sessionLogoFile.value) {
@@ -171,8 +172,10 @@ export const useSessionStore = defineStore('session', () => {
           {
             name: sessionName.value,
             slug: uniqueSlug,
-            access_code: accessCode.value || null,
+            access_code: accessCode.value?.trim() || null,
             user_id: userId,
+            starts_at: options.startsAt instanceof Date ? options.startsAt.toISOString() : null,
+            type: options.type || 'qna',
             expires_at: expiresAt,
             logo_url: logoUrl,
           },

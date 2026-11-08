@@ -310,4 +310,57 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.match(sql, /ENABLE ROW LEVEL SECURITY/)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // 8. DASHBOARD & CREATE SESSION MODAL (Figma Redesign Invariants)
+  // ---------------------------------------------------------------------------
+  describe('8. Dashboard & Create Session Modal (Figma Redesign Invariants)', () => {
+    it('enforces Public/Private via access_code, flex items-end padlock alignment, and capitalized session names in HomeView.vue', () => {
+      const homeCode = fs.readFileSync(path.join(ROOT, 'src/views/HomeView.vue'), 'utf8')
+
+      assert.ok(
+        homeCode.includes('function isPrivateSession(session)') &&
+          homeCode.includes('session?.access_code'),
+        'HomeView must determine Private vs Public from session.access_code',
+      )
+      assert.ok(
+        homeCode.includes('flex items-end gap-[4px]'),
+        'HomeView must align Public/Private text and padlock with flex items-end',
+      )
+      assert.ok(
+        homeCode.includes('capitalizeFirstLetter(session.name)') &&
+          homeCode.includes('first-letter:uppercase'),
+        'HomeView must capitalize the first letter of each session name',
+      )
+      assert.ok(
+        homeCode.includes('session.starts_at') && homeCode.includes("return 'Upcoming'"),
+        'HomeView must classify sessions with a future starts_at as Upcoming',
+      )
+    })
+
+    it('enforces 38px inputs, disabled Survey/Poll with cursor-not-allowed and Coming soon tooltip in CreateSessionModal.vue', () => {
+      const modalCode = fs.readFileSync(
+        path.join(ROOT, 'src/components/basis/CreateSessionModal.vue'),
+        'utf8',
+      )
+
+      assert.ok(
+        modalCode.includes('h-[38px]') && !modalCode.includes('h-[34px]'),
+        'CreateSessionModal inputs must use 38px height instead of 34px',
+      )
+      assert.ok(
+        modalCode.includes("{ value: 'survey', label: 'Survey', disabled: true }") &&
+          modalCode.includes("{ value: 'poll', label: 'Poll', disabled: true }"),
+        'Survey and Poll options must be disabled',
+      )
+      assert.ok(
+        modalCode.includes('cursor-not-allowed') && modalCode.includes('Coming soon'),
+        'Disabled Survey/Poll tabs must show cursor-not-allowed and Coming soon cursor tooltip',
+      )
+      assert.ok(
+        modalCode.includes('createSession({ type: sessionType.value, startsAt })'),
+        'CreateSessionModal must pass type and startsAt to sessionStore.createSession',
+      )
+    })
+  })
 })
