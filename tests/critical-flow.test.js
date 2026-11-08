@@ -363,4 +363,56 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       )
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // 9. RESEND EMAIL AUTOMATION & ANTI-SPAM DRIP QUEUE
+  // ---------------------------------------------------------------------------
+  describe('9. Resend Email Automation & Anti-Spam Drip Queue', () => {
+    it('enforces lowercase qalive branding, line-height spacing, new domains, and drip batching in send-emails Edge Function', () => {
+      const fnCode = fs.readFileSync(
+        path.join(ROOT, 'supabase/functions/send-emails/index.ts'),
+        'utf8',
+      )
+
+      assert.ok(
+        fnCode.includes('Chris from qalive <support@qalive.online>'),
+        'Sender must be Chris from qalive <support@qalive.online>',
+      )
+      assert.ok(
+        fnCode.includes('https://qalive.online') && fnCode.includes('https://app.qalive.online'),
+        'Emails must reference https://qalive.online (landing) and https://app.qalive.online (app)',
+      )
+      assert.ok(
+        fnCode.includes('line-height: 1.75') && fnCode.includes('margin: 0 0 18px 0'),
+        'Emails must include generous line-height and paragraph spacing',
+      )
+      assert.ok(
+        fnCode.includes('DEFAULT_BATCH_SIZE = 15') && fnCode.includes('DELAY_BETWEEN_EMAILS_MS'),
+        'Must throttle batches to 15 emails max with inter-email delay to protect Gmail reputation',
+      )
+      for (const tpl of [
+        'domain_migration',
+        'welcome',
+        'upcoming_reminder_30m',
+        'session_recap',
+        'first_session_feedback_1h',
+      ]) {
+        assert.ok(fnCode.includes(`"${tpl}"`), `Must support ${tpl} email scenario`)
+      }
+    })
+
+    it('enforces idempotency unique indexes and 1h first-session feedback delay in SQL migration', () => {
+      const sql = fs.readFileSync(
+        path.join(ROOT, 'supabase/migrations/20261108_resend_email_automation.sql'),
+        'utf8',
+      )
+
+      assert.match(sql, /CREATE TABLE IF NOT EXISTS public\.email_logs/)
+      assert.match(sql, /ENABLE ROW LEVEL SECURITY/)
+      assert.match(sql, /email_logs_unique_recipient_account_idx/)
+      assert.match(sql, /email_logs_unique_session_type_idx/)
+      assert.match(sql, /INTERVAL '1 hour'/)
+      assert.match(sql, /INTERVAL '30 minutes'/)
+    })
+  })
 })

@@ -33,6 +33,7 @@ model Session {
 
   questions   Question[]
   files       SessionFile[]
+  emailLogs   EmailLog[]
 
   @@map("sessions")
 }
@@ -120,4 +121,26 @@ model AnalyticsEvent {
   @@index([createdAt])
   @@index([eventName])
   @@map("analytics_events")
+}
+
+// Modèle pour la file d'attente et l'historique d'envoi d'emails via Resend
+model EmailLog {
+  id             BigInt    @id @default(autoincrement())
+  userId         String?   @map("user_id") @db.Uuid
+  sessionId      Int?      @map("session_id")
+  recipientEmail String    @map("recipient_email")
+  recipientName  String?   @map("recipient_name")
+  emailType      String    @map("email_type")
+  status         String    @default("queued")
+  payload        Json      @default("{}")
+  resendId       String?   @map("resend_id")
+  errorMessage   String?   @map("error_message")
+  scheduledFor   DateTime  @default(now()) @map("scheduled_for")
+  sentAt         DateTime? @map("sent_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  session        Session?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([status, scheduledFor, createdAt])
+  @@map("email_logs")
 }

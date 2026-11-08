@@ -420,12 +420,12 @@ onUnmountedAsk(() => {
           <!-- Badge viral sur les sessions gratuites -->
           <div v-if="!isOwnerPremium" class="pt-4 text-center">
             <a
-              href="https://qalive.ink?utm_source=powered_by_badge"
+              href="https://qalive.online?utm_source=powered_by_badge"
               target="_blank"
               rel="noopener"
               class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#F6F5EF] text-[11px] text-gray-600 hover:text-[#E85D4A] transition-colors"
             >
-              <span>⚡ Powered by <strong>QALive</strong></span>
+              <span>⚡ Powered by <strong>qalive</strong></span>
             </a>
           </div>
         </div>
