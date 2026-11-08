@@ -253,7 +253,7 @@ const dashboardInformations = computed(() =>
             <button
               type="button"
               @click="openModal"
-              class="bg-[#d4382a] hover:bg-[#bd3023] flex h-[31px] items-center justify-center p-[10px] rounded-[4px] shrink-0 text-[14px] font-medium text-white whitespace-nowrap transition-colors"
+              class="bg-[#E85D4A] hover:bg-[#d44d3c] flex h-[31px] items-center justify-center p-[10px] rounded-[4px] shrink-0 text-[14px] font-medium text-white whitespace-nowrap transition-colors"
             >
               New session
             </button>

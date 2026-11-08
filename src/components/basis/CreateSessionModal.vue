@@ -261,7 +261,7 @@ const handleCreateSession = async () => {
               :maxlength="NAME_MAX_LENGTH"
               placeholder="Enter session name"
               :disabled="loading"
-              class="w-full h-[38px] pl-[10px] pr-[60px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#d4382a] transition-colors"
+              class="w-full h-[38px] pl-[10px] pr-[60px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors"
             />
             <span
               class="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12px] text-[#1b1b1b] pointer-events-none"
@@ -286,14 +286,14 @@ const handleCreateSession = async () => {
               type="text"
               placeholder="Enter access code"
               :disabled="loading"
-              class="w-full h-[38px] pl-[10px] pr-[150px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#d4382a] transition-colors"
+              class="w-full h-[38px] pl-[10px] pr-[150px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors"
             />
             <button
               id="generate-access-code"
               type="button"
               @click="generateAccessCode"
               :disabled="loading"
-              class="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12px] text-[#1b1b1b] underline hover:text-[#d4382a] transition-colors"
+              class="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12px] text-[#1b1b1b] underline hover:text-[#E85D4A] transition-colors"
             >
               Generate automatically
             </button>
@@ -318,7 +318,7 @@ const handleCreateSession = async () => {
               max="72"
               placeholder="Set the session duration"
               :disabled="loading"
-              class="w-full h-[38px] pl-[10px] pr-[60px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#d4382a] transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              class="w-full h-[38px] pl-[10px] pr-[60px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
             <input
               v-else
@@ -362,7 +362,7 @@ const handleCreateSession = async () => {
                 cx="10"
                 cy="10"
                 r="8.333"
-                :stroke="sessionTiming === option.value ? '#d4382a' : '#AAAAAA'"
+                :stroke="sessionTiming === option.value ? '#E85D4A' : '#AAAAAA'"
                 stroke-width="1.5"
               />
               <circle
@@ -370,7 +370,7 @@ const handleCreateSession = async () => {
                 cx="10"
                 cy="10"
                 r="4.5"
-                fill="#d4382a"
+                fill="#E85D4A"
               />
             </svg>
             <span class="text-[14px] leading-[normal] text-black">{{ option.label }}</span>
@@ -391,7 +391,7 @@ const handleCreateSession = async () => {
             :required="isUpcoming"
             @focus="onDateFocus"
             @blur="onDateBlur"
-            class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#d4382a] transition-colors disabled:cursor-not-allowed"
+            class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors disabled:cursor-not-allowed"
           />
         </div>
 
@@ -404,7 +404,7 @@ const handleCreateSession = async () => {
             id="session-timezone"
             v-model="timezone"
             :disabled="!isUpcoming || loading"
-            class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-[#666] outline-none appearance-none focus:border-[#d4382a] transition-colors disabled:cursor-not-allowed"
+            class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-[#666] outline-none appearance-none focus:border-[#E85D4A] transition-colors disabled:cursor-not-allowed"
           >
             <option v-for="tz in timezoneOptions" :key="tz.value" :value="tz.value">
               {{ tz.label }}
@@ -413,7 +413,7 @@ const handleCreateSession = async () => {
         </div>
       </div>
 
-      <p v-if="errorMsg" class="mt-4 text-[12px] text-[#d4382a]">{{ errorMsg }}</p>
+      <p v-if="errorMsg" class="mt-4 text-[12px] text-[#E85D4A]">{{ errorMsg }}</p>
 
       <!-- Actions (Figma node 49:545 / 49:546) -->
       <div class="mt-[31px] flex justify-end gap-2">
@@ -429,7 +429,7 @@ const handleCreateSession = async () => {
           id="submit-create-session"
           type="submit"
           :disabled="loading"
-          class="h-[36px] min-w-[69px] px-[8px] py-[4px] rounded-[6px] bg-[#d4382a] text-[14px] leading-[normal] text-white hover:bg-[#bf3123] transition-colors disabled:opacity-50 flex items-center justify-center"
+          class="h-[36px] min-w-[69px] px-[8px] py-[4px] rounded-[6px] bg-[#E85D4A] text-[14px] leading-[normal] text-white hover:bg-[#d44d3c] transition-colors disabled:opacity-50 flex items-center justify-center"
         >
           {{ loading ? 'Creating...' : 'Create' }}
         </button>
