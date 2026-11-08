@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useFileStore } from '@/stores/fileStore'
+import { useSessionStore } from '@/stores/sessionStore'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   sessionId: {
@@ -10,6 +12,8 @@ const props = defineProps({
 })
 
 const fileStore = useFileStore()
+const sessionStore = useSessionStore()
+const { isPremium } = storeToRefs(sessionStore)
 const fileInput = ref(null)
 
 const handleFileChange = async (event) => {
@@ -18,10 +22,9 @@ const handleFileChange = async (event) => {
 
   try {
     await fileStore.uploadFile(file, props.sessionId)
-    // Reset input
     if (fileInput.value) fileInput.value.value = ''
   } catch (e) {
-    // Error logic is handled in store (setting errorMsg)
+    if (fileInput.value) fileInput.value.value = ''
   }
 }
 </script>
@@ -58,7 +61,7 @@ const handleFileChange = async (event) => {
       </label>
       
       <span v-if="!fileStore.uploading" class="text-xs text-gray-400">
-        PDF, Images, etc.
+        {{ isPremium ? 'PDF, Images, etc. (up to 25 MB)' : 'Free: max 1 file (5 MB) · Pro: up to 25 MB' }}
       </span>
     </div>
   </div>

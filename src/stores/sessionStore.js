@@ -31,7 +31,6 @@ export const useSessionStore = defineStore('session', () => {
   const sessionName = ref('')
   const accessCode = ref('')
   const customDuration = ref(2) // Heures (Pro)
-  const sessionLogoFile = ref(null) // Fichier image (Pro)
 
   const createdSessionId = ref(null)
   const createdSessionSlug = ref(null)
@@ -64,26 +63,6 @@ export const useSessionStore = defineStore('session', () => {
     if (error && error.code !== 'PGRST116') throw error
     if (!data) return slugToCheck
     return generateUniqueSlug(baseSlug, attempt + 1)
-  }
-
-  /**
-   * Upload l'image dans le bucket 'session-logos'
-   */
-  async function uploadLogo(file, userId) {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userId}/${Date.now()}.${fileExt}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('sessions-logos')
-      .upload(fileName, file, { upsert: true })
-
-    if (uploadError) throw uploadError
-
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from('sessions-logos').getPublicUrl(fileName)
-
-    return publicUrl
   }
 
   // --- Actions ---
@@ -160,11 +139,6 @@ export const useSessionStore = defineStore('session', () => {
       const startDate = options.startsAt instanceof Date ? options.startsAt : new Date()
       const expiresAt = new Date(startDate.getTime() + finalDurationMs).toISOString()
 
-      let logoUrl = null
-      if (isPremium.value && sessionLogoFile.value) {
-        logoUrl = await uploadLogo(sessionLogoFile.value, userId)
-      }
-
       // Insert DB
       const { data: newSession, error: createError } = await supabase
         .from('sessions')
@@ -177,7 +151,6 @@ export const useSessionStore = defineStore('session', () => {
             starts_at: options.startsAt instanceof Date ? options.startsAt.toISOString() : null,
             type: options.type || 'qna',
             expires_at: expiresAt,
-            logo_url: logoUrl,
           },
         ])
         .select('id, slug')
@@ -198,7 +171,6 @@ export const useSessionStore = defineStore('session', () => {
       sessionName.value = ''
       accessCode.value = ''
       customDuration.value = 2
-      sessionLogoFile.value = null
 
       await fetchDashboardData()
       return true
@@ -270,7 +242,6 @@ export const useSessionStore = defineStore('session', () => {
     sessionName,
     accessCode,
     customDuration,
-    sessionLogoFile,
     createdSessionId,
     createdSessionSlug,
     user,

@@ -415,4 +415,62 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       assert.match(sql, /INTERVAL '30 minutes'/)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // 10. CLOUDFLARE R2 STORAGE & OPTION B FREEMIUM FILE QUOTAS
+  // ---------------------------------------------------------------------------
+  describe('10. Cloudflare R2 Storage & Option B Freemium File Quotas', () => {
+    it('routes all new document uploads through Cloudflare R2 presigned URLs and removes legacy Supabase Storage calls', () => {
+      const fileStoreCode = fs.readFileSync(
+        path.join(ROOT, 'src/stores/fileStore.js'),
+        'utf8',
+      )
+      const sessionStoreCode = fs.readFileSync(
+        path.join(ROOT, 'src/stores/sessionStore.js'),
+        'utf8',
+      )
+
+      assert.equal(
+        sessionStoreCode.includes('sessions-logos'),
+        false,
+        'Legacy sessions-logos upload must be removed from sessionStore.js',
+      )
+      assert.equal(
+        fileStoreCode.includes('supabase.storage'),
+        false,
+        'fileStore.js must not upload binaries to supabase.storage anymore',
+      )
+      assert.ok(
+        fileStoreCode.includes("supabase.functions.invoke('r2-upload'") &&
+          fileStoreCode.includes("from('session_files')"),
+        'fileStore.js must request a presigned URL from r2-upload and persist metadata in session_files',
+      )
+      assert.ok(
+        fileStoreCode.includes('5 * 1024 * 1024') &&
+          fileStoreCode.includes('25 * 1024 * 1024') &&
+          fileStoreCode.includes('FREE_MAX_FILES_PER_SESSION = 1'),
+        'fileStore.js must enforce Option B quotas (Free: 1 file / 5 MB, Pro: 25 MB)',
+      )
+    })
+
+    it('verifies session ownership, AWS Signature V4 presigning, and Option B quotas in r2-upload Edge Function', () => {
+      const r2FnCode = fs.readFileSync(
+        path.join(ROOT, 'supabase/functions/r2-upload/index.ts'),
+        'utf8',
+      )
+
+      assert.ok(
+        r2FnCode.includes('AWS4-HMAC-SHA256') &&
+          r2FnCode.includes('r2.cloudflarestorage.com') &&
+          r2FnCode.includes('https://files.qalive.online'),
+        'r2-upload must sign S3 PUT URLs for Cloudflare R2 and return https://files.qalive.online public URLs',
+      )
+      assert.ok(
+        r2FnCode.includes('FREE_MAX_FILES_PER_SESSION = 1') &&
+          r2FnCode.includes('5 * 1024 * 1024') &&
+          r2FnCode.includes('25 * 1024 * 1024'),
+        'r2-upload must enforce Option B quotas server-side',
+      )
+    })
+  })
 })

@@ -68,10 +68,14 @@ onUnmounted(() => {
 
 
 import { useFileStore } from "@/stores/fileStore";
+import { useSessionStore } from "@/stores/sessionStore";
 import FileUpload from "@/components/files/FileUpload.vue";
 import FileList from "@/components/files/FileList.vue";
+import UpgradePlanModal from "@/components/basis/UpgradePlanModal.vue";
 
 const fileStore = useFileStore();
+const sessionStore = useSessionStore();
+const { showUpgradePlanModal } = storeToRefs(sessionStore);
 const showFileSection = ref(false);
 
 import { watch } from 'vue';
@@ -235,6 +239,16 @@ watch(currentSession, (newVal) => {
               </p>
             </div>
           </div>
+        </div>
+      </Transition>
+
+      <Transition name="modal-fade">
+        <div
+          v-if="showUpgradePlanModal"
+          @click.self="showUpgradePlanModal = false"
+          class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+        >
+          <UpgradePlanModal />
         </div>
       </Transition>
     </Teleport>
