@@ -203,8 +203,9 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   async function redirectToSessionQrCode() {
+    showModal.value = false
     if (createdSessionSlug.value) {
-      window.location.href = `/session/${createdSessionSlug.value}/qrcode`
+      window.location.href = `/overview?session=${createdSessionSlug.value}&qr=1`
     }
   }
 

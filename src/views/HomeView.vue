@@ -1,18 +1,27 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { storeToRefs } from 'pinia'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useQuestionStore } from '@/stores/questionStore'
 import { supabase } from '@/lib/supabase'
 import CreateSessionModal from '@/components/basis/CreateSessionModal.vue'
 import DashboardCard from '@/components/basis/dashboardCard.vue'
 import { formatDateLocal, parseUTCDate } from '@/utils/dateHelper'
 import { exposeDashboardaInformations } from '@/datas/dashboardDatas'
 import UpgradePlanModal from '@/components/basis/UpgradePlanModal.vue'
+import SessionSideBar from '@/components/layouts/SessionSideBar/SessionSideBar.vue'
+import ShareSessionQrModal from '@/components/basis/ShareSessionQrModal.vue'
+import QuestionFocusModal from '@/components/basis/QuestionFocusModal.vue'
 import { analytics } from '@/lib/analytics'
 import { cleanAuthUrl } from '@/utils/urlHelper'
 
+const route = useRoute()
+const router = useRouter()
 const sessionStore = useSessionStore()
+const questionStore = useQuestionStore()
+const { questions: sidebarQuestions } = storeToRefs(questionStore)
 
 const {
   sessions,
@@ -40,6 +49,9 @@ const tabs = [
 const activeTab = ref('All')
 const searchQuery = ref('')
 const allSessions = ref([])
+const selectedSession = ref(null)
+const qrModalSession = ref(null)
+const focusedQuestion = ref(null)
 const now = ref(new Date())
 let timer
 
@@ -93,8 +105,39 @@ function openModal() {
 }
 
 async function handleDeleteSession(sessionId) {
+  if (selectedSession.value?.id === sessionId) {
+    selectedSession.value = null
+  }
   await deleteSession(sessionId)
   await loadAllSessions()
+}
+
+function openSessionSidebar(session) {
+  selectedSession.value = session
+  if (session?.slug) {
+    router.replace({ path: '/overview', query: { ...route.query, session: session.slug } })
+  }
+}
+
+function closeSessionSidebar() {
+  selectedSession.value = null
+  focusedQuestion.value = null
+  const nextQuery = { ...route.query }
+  delete nextQuery.session
+  delete nextQuery.qr
+  router.replace({ path: '/overview', query: nextQuery })
+}
+
+function openShareQr(session) {
+  if (session) {
+    qrModalSession.value = session
+  }
+}
+
+function openQuestionFocus(question) {
+  if (question) {
+    focusedQuestion.value = question
+  }
 }
 
 async function loadAllSessions() {
@@ -111,6 +154,19 @@ async function loadAllSessions() {
       ...session,
       questionCount: session.questions?.length || 0,
     }))
+
+    const querySlug = route.query?.session
+    if (querySlug && !selectedSession.value) {
+      const found =
+        allSessions.value.find((s) => s.slug === querySlug) ||
+        sessions.value.find((s) => s.slug === querySlug)
+      if (found) {
+        selectedSession.value = found
+        if (route.query?.qr === '1') {
+          qrModalSession.value = found
+        }
+      }
+    }
   } catch (err) {
     console.error(err)
   }
@@ -130,7 +186,6 @@ onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
 
-const redirectToQuestionsView = (slug) => (window.location.href = `/session/${slug}`)
 const redirectToUserProfilePage = () => (window.location.href = '/profile')
 const openUpgradeModal = () => {
   showUpgradePlanModal.value = true
@@ -285,8 +340,11 @@ const dashboardInformations = computed(() =>
                 <tr
                   v-for="session in filteredSessions"
                   :key="session.id"
-                  class="hover:bg-gray-50/70 cursor-pointer transition-colors"
-                  @click="redirectToQuestionsView(session.slug)"
+                  :class="[
+                    'hover:bg-gray-50/70 cursor-pointer transition-colors',
+                    selectedSession?.id === session.id ? 'bg-gray-50' : '',
+                  ]"
+                  @click="openSessionSidebar(session)"
                 >
                   <!-- Session column -->
                   <td class="py-[7px] pr-4">
@@ -472,6 +530,35 @@ const dashboardInformations = computed(() =>
     </div>
 
     <Teleport to="body">
+      <Transition name="sidebar-slide">
+        <SessionSideBar
+          v-if="selectedSession"
+          :session="selectedSession"
+          @close="closeSessionSidebar"
+          @open-share-qr="openShareQr"
+          @select-question="openQuestionFocus"
+        />
+      </Transition>
+
+      <Transition name="modal-fade">
+        <div
+          v-if="qrModalSession"
+          @click.self="qrModalSession = null"
+          class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        >
+          <ShareSessionQrModal :session="qrModalSession" @close="qrModalSession = null" />
+        </div>
+      </Transition>
+
+      <Transition name="modal-fade">
+        <QuestionFocusModal
+          v-if="focusedQuestion"
+          :questions="sidebarQuestions"
+          :initial-question="focusedQuestion"
+          @close="focusedQuestion = null"
+        />
+      </Transition>
+
       <Transition name="modal-fade">
         <div
           v-if="showModal"
@@ -494,3 +581,16 @@ const dashboardInformations = computed(() =>
     </Teleport>
   </AppLayout>
 </template>
+
+<style scoped>
+.sidebar-slide-enter-active,
+.sidebar-slide-leave-active {
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.sidebar-slide-enter-from,
+.sidebar-slide-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+</style>

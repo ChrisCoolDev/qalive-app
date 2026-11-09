@@ -3,11 +3,9 @@ import { supabase } from '@/lib/supabase'
 import { analytics, isAnalyticsSubdomain, isFounderEmail } from '@/lib/analytics'
 import { cleanAuthUrl } from '@/utils/urlHelper'
 import HomeView from '../views/HomeView.vue'
-import QuestionsView from '@/views/QuestionsView.vue'
 import CreateSessionView from '@/views/CreateSessionView.vue'
 import LoginView from '@/views/LoginView.vue'
 import AskQuestionView from '@/views/AskQuestionView.vue'
-import SessionQRCodeView from '@/views/SessionQRCodeView.vue'
 import UserProfileView from '@/views/UserProfileView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 
@@ -59,14 +57,18 @@ const routes = onAnalyticsDomain
       {
         path: '/session/:slug',
         name: 'session',
-        component: QuestionsView,
-        meta: { requiresAuth: true },
+        redirect: (to) => ({
+          path: '/overview',
+          query: { session: to.params.slug },
+        }),
       },
       {
         path: '/session/:slug/qrcode',
         name: 'SessionQRCode',
-        component: SessionQRCodeView,
-        meta: { requiresAuth: true },
+        redirect: (to) => ({
+          path: '/overview',
+          query: { session: to.params.slug, qr: '1' },
+        }),
       },
       // Route locale secrète réservée uniquement à l'email du fondateur pour tester en dev
       {

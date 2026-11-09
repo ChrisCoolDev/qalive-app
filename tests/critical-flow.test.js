@@ -473,4 +473,62 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       )
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // 11. SESSION SIDEBAR, SHARED FILES POPOVER, QR MODAL & QUESTION FOCUS
+  // ---------------------------------------------------------------------------
+  describe('11. Session Right-Hand Sidebar, Shared Files Popover & Modals', () => {
+    it('implements the 324px right-hand sidebar and Shared files popover in SessionSideBar.vue', () => {
+      const sidebarCode = fs.readFileSync(
+        path.join(ROOT, 'src/components/layouts/SessionSideBar/SessionSideBar.vue'),
+        'utf8',
+      )
+
+      assert.ok(
+        sidebarCode.includes('w-[324px]') && sidebarCode.includes('border-l border-[#e8e8e8]'),
+        'SessionSideBar must be 324px wide with left border #e8e8e8',
+      )
+      assert.ok(
+        sidebarCode.includes('Type a file name...') &&
+          sidebarCode.includes('Not shared file now') &&
+          sidebarCode.includes('Share a new file'),
+        'SessionSideBar must implement the Figma Shared files popover with search, empty state, and upload button',
+      )
+    })
+
+    it('enforces 38px Download button height and access code copy in ShareSessionQrModal.vue', () => {
+      const qrModalCode = fs.readFileSync(
+        path.join(ROOT, 'src/components/basis/ShareSessionQrModal.vue'),
+        'utf8',
+      )
+
+      assert.ok(
+        qrModalCode.includes('Share the session') &&
+          qrModalCode.includes('The access code for this session is : '),
+        'ShareSessionQrModal must display title and access code label from Figma',
+      )
+      assert.ok(
+        qrModalCode.includes('h-[38px]') && qrModalCode.includes('Download the qr-code'),
+        'Download the qr-code button must have h-[38px] height',
+      )
+    })
+
+    it('implements the QuestionFocusModal with active card, next-question peek card, and keyboard navigation', () => {
+      const focusModalCode = fs.readFileSync(
+        path.join(ROOT, 'src/components/basis/QuestionFocusModal.vue'),
+        'utf8',
+      )
+
+      assert.ok(
+        focusModalCode.includes('max-w-[891px]') &&
+          focusModalCode.includes('min-h-[237px]') &&
+          focusModalCode.includes('nextQuestion'),
+        'QuestionFocusModal must render the 891px main question card and nextQuestion peek card',
+      )
+      assert.ok(
+        focusModalCode.includes('ArrowDown') && focusModalCode.includes('Escape'),
+        'QuestionFocusModal must support keyboard navigation and Escape to close',
+      )
+    })
+  })
 })
