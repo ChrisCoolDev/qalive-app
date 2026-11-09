@@ -115,7 +115,7 @@ onUnmounted(() => {
   >
     <!-- Modal container (Figma node 381:940, width 752px) -->
     <div
-      class="bg-white rounded-[12px] w-[752px] max-w-full overflow-hidden shadow-xl flex flex-col relative my-auto"
+      class="bg-white rounded-[12px] w-[680px] max-w-full overflow-hidden shadow-xl flex flex-col relative my-auto"
     >
       <!-- Header (height 47px, Figma nodes 381:943, 381:941, 381:953) -->
       <div class="h-[47px] px-[16px] flex items-center justify-between border-b border-[#ececec] shrink-0">
@@ -146,10 +146,10 @@ onUnmounted(() => {
       </div>
 
       <!-- Body -->
-      <div class="px-[20px] sm:px-[55px] pt-[44px] pb-[39px] flex flex-col items-center w-full">
+      <div class="px-[20px] sm:px-[55px] pt-[44px] pb-[24px] flex flex-col items-center w-full">
         <!-- Peach Decorative Stage Container (Figma node 382:961) -->
         <div
-          class="w-full max-w-[641px] rounded-[20px] bg-[#fdd9c8] overflow-hidden relative px-[24px] sm:px-[45px] pt-[100px] pb-[99px] flex flex-col items-center justify-center"
+          class="w-full max-w-[641px] rounded-[20px] bg-[#fdd9c8] overflow-hidden relative px-[24px] sm:px-[45px] pt-[75px] pb-[75px] flex flex-col items-center justify-center"
         >
           <!-- Vector 3 background wave (Figma node 382:962) -->
           <svg
@@ -198,13 +198,13 @@ onUnmounted(() => {
                px-[20px] pt-[26px] pb-[32px], gap mt-[19px] -->
           <div
             v-if="currentQuestion"
-            class="relative z-10 w-full max-w-[546px] bg-white rounded-[15px] px-[20px] pt-[26px] pb-[32px] flex flex-col items-start"
+            class="relative z-10 w-full max-w-[546px] bg-white rounded-[15px] px-[20px] pt-[26px] pb-[32px] flex flex-col items-start space-y-[10px]"
           >
             <p class="text-[14px] font-medium leading-normal text-[#626262]">
               {{ formatAuthor(currentQuestion) }}
             </p>
             <p
-              class="mt-[19px] text-[20px] sm:text-[24px] font-medium leading-normal text-black break-words w-full"
+              class="text-[20px] sm:text-[24px] font-medium leading-normal text-black break-words w-full leading-[30px]"
             >
               {{ currentQuestion.content }}
             </p>
@@ -220,17 +220,14 @@ onUnmounted(() => {
         </div>
 
         <!-- Session Title & Subtitle (Figma nodes 382:967 & 382:968) -->
-        <p
-          v-if="formattedSessionName"
-          class="mt-[44px] text-[16px] font-semibold leading-normal text-black text-center first-letter:uppercase"
-        >
-          {{ formattedSessionName }}
-        </p>
-        <p
-          class="mt-[8px] text-[14px] font-normal leading-normal text-black text-center max-w-[409px]"
-        >
-          Your question will be display here by the monitorer. You can attach your identity with your question or stay anonym.
-        </p>
+        <div class="pt-[22px]">
+          <p
+          class="text-[14px] font-normal leading-normal text-black text-center max-w-[409px]"
+          >
+            Your question will be display here by the monitorer. You can attach your identity with your question or stay anonym.
+          </p>
+        </div>
+
       </div>
 
       <!-- Footer (Figma nodes 382:978, 382:976, 381:955, 381:944) -->
@@ -265,12 +262,12 @@ onUnmounted(() => {
         </div>
 
         <!-- Prev / Next buttons (Figma nodes 381:955 & 381:944) -->
-        <div class="flex items-center gap-[10px]">
+        <div class="flex items-center gap-[7px]">
           <button
             type="button"
             :disabled="!hasPrev"
             @click="goPrev"
-            class="w-[67px] h-[38px] bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed rounded-[6px] px-[8px] py-[6px] flex items-center justify-center text-[14px] font-normal text-white whitespace-nowrap transition-opacity"
+            class="w-[60px] h-[33px] bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed rounded-[6px] px-[8px] py-[6px] flex items-center justify-center text-[14px] font-normal text-white whitespace-nowrap transition-opacity"
           >
             Prev
           </button>
@@ -278,7 +275,7 @@ onUnmounted(() => {
             type="button"
             :disabled="!hasNext"
             @click="goNext"
-            class="w-[67px] h-[38px] bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed rounded-[6px] px-[8px] py-[6px] flex items-center justify-center text-[14px] font-normal text-white whitespace-nowrap transition-opacity"
+            class="w-[60px] h-[33px] bg-[#232323] hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed rounded-[6px] px-[8px] py-[6px] flex items-center justify-center text-[14px] font-normal text-white whitespace-nowrap transition-opacity"
           >
             Next
           </button>
