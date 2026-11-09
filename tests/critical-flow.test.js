@@ -513,21 +513,35 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       )
     })
 
-    it('implements the QuestionFocusModal with active card, next-question peek card, and keyboard navigation', () => {
+    it('implements the Session’s activity QuestionFocusModal (Figma 381:940) with dynamic card height, Free plan badge, and Coming soon tooltip', () => {
       const focusModalCode = fs.readFileSync(
         path.join(ROOT, 'src/components/basis/QuestionFocusModal.vue'),
         'utf8',
       )
 
       assert.ok(
-        focusModalCode.includes('max-w-[891px]') &&
-          focusModalCode.includes('min-h-[237px]') &&
-          focusModalCode.includes('nextQuestion'),
-        'QuestionFocusModal must render the 891px main question card and nextQuestion peek card',
+        focusModalCode.includes('w-[752px]') &&
+          focusModalCode.includes('Session’s activity') &&
+          focusModalCode.includes('px-[20px] pt-[26px] pb-[32px]'),
+        'QuestionFocusModal must render the 752px Session’s activity modal with exact question card paddings',
       )
       assert.ok(
-        focusModalCode.includes('ArrowDown') && focusModalCode.includes('Escape'),
-        'QuestionFocusModal must support keyboard navigation and Escape to close',
+        focusModalCode.includes('v-if="!isPremium"') &&
+          focusModalCode.includes('Powered with love by qalive'),
+        'QuestionFocusModal must show Powered with love by qalive only for Free plan users (!isPremium)',
+      )
+      assert.ok(
+        focusModalCode.includes('Ask for public feeling') &&
+          focusModalCode.includes('cursor-not-allowed') &&
+          focusModalCode.includes('Coming soon'),
+        'Ask for public feeling must be non-clickable with Coming soon cursor tooltip',
+      )
+      assert.ok(
+        focusModalCode.includes('Prev') &&
+          focusModalCode.includes('Next') &&
+          focusModalCode.includes('ArrowDown') &&
+          focusModalCode.includes('Escape'),
+        'QuestionFocusModal must support Prev/Next buttons and keyboard navigation',
       )
     })
   })

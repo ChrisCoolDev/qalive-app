@@ -555,6 +555,8 @@ const dashboardInformations = computed(() =>
           v-if="focusedQuestion"
           :questions="sidebarQuestions"
           :initial-question="focusedQuestion"
+          :session="selectedSession"
+          :is-premium="isPremium"
           @close="focusedQuestion = null"
         />
       </Transition>
