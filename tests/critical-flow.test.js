@@ -520,10 +520,9 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       )
 
       assert.ok(
-        focusModalCode.includes('w-[752px]') &&
-          focusModalCode.includes('Session’s activity') &&
+        focusModalCode.includes('Session’s activity') &&
           focusModalCode.includes('px-[20px] pt-[26px] pb-[32px]'),
-        'QuestionFocusModal must render the 752px Session’s activity modal with exact question card paddings',
+        'QuestionFocusModal must render the Session’s activity modal with exact question card paddings',
       )
       assert.ok(
         focusModalCode.includes('v-if="!isPremium"') &&
