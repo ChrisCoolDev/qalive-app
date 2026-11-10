@@ -99,6 +99,26 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
         'Free session duration must be locked to 1 hour',
       )
     })
+
+    it('casts both sides to ::text in SQL trigger and RPC functions to prevent operator text = uuid errors', () => {
+      const sqlCode = fs.readFileSync(
+        path.join(ROOT, 'supabase/migrations/20261110_update_free_plan_limits.sql'),
+        'utf8',
+      )
+
+      assert.ok(
+        sqlCode.includes('p.id::text = NEW.user_id::text'),
+        'enforce_session_creation_limits must compare p.id::text with NEW.user_id::text',
+      )
+      assert.ok(
+        sqlCode.includes('p.id::text = v_session.user_id::text'),
+        'get_public_session_status and enforce_question_submission_limits must cast user_id to ::text',
+      )
+      assert.ok(
+        !sqlCode.includes('p.id::text = NEW.user_id\n') && !sqlCode.includes('p.id::text = v_session.user_id\n'),
+        'Must not contain uncast text = uuid comparisons',
+      )
+    })
   })
 
   // ---------------------------------------------------------------------------

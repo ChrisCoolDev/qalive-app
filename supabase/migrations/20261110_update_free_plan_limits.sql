@@ -37,7 +37,7 @@ BEGIN
   SELECT COALESCE(p.is_premium, FALSE)
   INTO v_is_premium
   FROM public.profiles p
-  WHERE p.id::text = v_session.user_id
+  WHERE p.id::text = v_session.user_id::text
   LIMIT 1;
 
   -- Compter le nombre actuel de questions
@@ -74,14 +74,14 @@ BEGIN
   SELECT COALESCE(p.is_premium, FALSE)
   INTO v_is_premium
   FROM public.profiles p
-  WHERE p.id::text = NEW.user_id
+  WHERE p.id::text = NEW.user_id::text
   LIMIT 1;
 
   IF NOT COALESCE(v_is_premium, FALSE) THEN
     SELECT COUNT(*)
     INTO v_session_count
     FROM public.sessions s
-    WHERE s.user_id = NEW.user_id;
+    WHERE s.user_id::text = NEW.user_id::text;
 
     IF v_session_count >= 1 THEN
       RAISE EXCEPTION 'Free plan limit reached: 1 test session allowed. Upgrade to Pro for unlimited sessions.';
@@ -140,7 +140,7 @@ BEGIN
   SELECT COALESCE(p.is_premium, FALSE)
   INTO v_is_premium
   FROM public.profiles p
-  WHERE p.id::text = v_session.user_id
+  WHERE p.id::text = v_session.user_id::text
   LIMIT 1;
 
   -- Appliquer la limite de 15 questions si l'organisateur est en plan Gratuit
