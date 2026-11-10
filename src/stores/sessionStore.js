@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { sessionService } from '@/services/sessionService'
 import { analytics } from '@/lib/analytics'
 
-const FREE_SESSION_DURATION_MS = 2 * 60 * 60 * 1000 // 2 heures (Free)
+const FREE_SESSION_DURATION_MS = 1 * 60 * 60 * 1000 // 1 heure (Free)
 
 export const useSessionStore = defineStore('session', () => {
   // --- State: Data & Pagination ---
@@ -112,10 +112,10 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   async function createSession(options = {}) {
-    if (!isPremium.value && totalSessions.value >= 3) {
+    if (!isPremium.value && totalSessions.value >= 1) {
       showModal.value = false
       showUpgradePlanModal.value = true
-      analytics.trackEvent('upgrade_modal_opened', { reason: 'session_limit_3_reached' })
+      analytics.trackEvent('upgrade_modal_opened', { reason: 'free_session_limit_reached' })
       return false
     }
 

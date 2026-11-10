@@ -56,16 +56,23 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
   // 2. MONETIZATION & FREEMIUM QUOTAS (Critique : protéger la conversion Pro)
   // ---------------------------------------------------------------------------
   describe('2. Freemium Quotas & Participant Question Flow', () => {
-    it('enforces the 70-question limit and expiration check in AskQuestionView.vue', () => {
+    it('enforces the 15-question limit and expiration check in AskQuestionView.vue and questionStore.js', () => {
       const askViewCode = fs.readFileSync(
         path.join(ROOT, 'src/views/AskQuestionView.vue'),
         'utf8',
       )
+      const questionStoreCode = fs.readFileSync(
+        path.join(ROOT, 'src/stores/questionStore.js'),
+        'utf8',
+      )
 
-      // Vérifie que la vue participant contrôle la limite des 70 questions et l'expiration
       assert.ok(
         askViewCode.includes('FREE_QUESTION_LIMIT'),
         'AskQuestionView must import and enforce FREE_QUESTION_LIMIT',
+      )
+      assert.ok(
+        questionStoreCode.includes('FREE_QUESTION_LIMIT = 15'),
+        'questionStore must limit Free sessions to 15 questions max',
       )
       assert.ok(
         askViewCode.includes('checkIfLimitReached'),
@@ -77,19 +84,19 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
       )
     })
 
-    it('enforces the 3-session limit and 2h duration in sessionStore.js', () => {
+    it('enforces the 1-test-session limit and 1h duration in sessionStore.js', () => {
       const sessionStoreCode = fs.readFileSync(
         path.join(ROOT, 'src/stores/sessionStore.js'),
         'utf8',
       )
 
       assert.ok(
-        sessionStoreCode.includes('totalSessions.value >= 3'),
-        'sessionStore must block Free users at 3 sessions and open UpgradePlanModal',
+        sessionStoreCode.includes('totalSessions.value >= 1'),
+        'sessionStore must block Free users at 1 session and open UpgradePlanModal',
       )
       assert.ok(
-        sessionStoreCode.includes('2 * 60 * 60 * 1000'),
-        'Free session duration must be locked to 2 hours',
+        sessionStoreCode.includes('1 * 60 * 60 * 1000'),
+        'Free session duration must be locked to 1 hour',
       )
     })
   })

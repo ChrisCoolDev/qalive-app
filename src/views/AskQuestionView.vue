@@ -76,7 +76,7 @@ const submitQuestion = async () => {
     return;
   }
 
-  // 2. Vérifier la limite de 70 questions (Plan Gratuit)
+  // 2. Vérifier la limite de questions (Plan Gratuit)
   const reached = await checkIfLimitReached();
   if (reached) {
     analytics.trackEvent("question_limit_reached", {

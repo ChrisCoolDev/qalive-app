@@ -101,6 +101,11 @@ const filteredSessions = computed(() => {
 const showTable = computed(() => totalSessions.value > 0)
 
 function openModal() {
+  if (!isPremium.value && totalSessions.value >= 1) {
+    showUpgradePlanModal.value = true
+    analytics.trackEvent('upgrade_modal_opened', { reason: 'free_session_limit_reached' })
+    return
+  }
   showModal.value = true
 }
 

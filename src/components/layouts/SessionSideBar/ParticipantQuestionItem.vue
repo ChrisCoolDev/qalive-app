@@ -29,13 +29,13 @@ const relativeTime = computed(() => {
   const created = parseUTCDate(props.question?.created_at || props.question?.createdAt)
   if (!created) return ''
   const diffSec = Math.max(0, Math.floor((Date.now() - created.getTime()) / 1000))
-  if (diffSec < 60) return "à l'instant"
+  if (diffSec < 60) return "now"
   const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `il y’a ${diffMin} min`
+  if (diffMin < 60) return `${diffMin}min ago`
   const diffHours = Math.floor(diffMin / 60)
-  if (diffHours < 24) return `il y’a ${diffHours} h`
+  if (diffHours < 24) return `${diffHours}h ago`
   const diffDays = Math.floor(diffHours / 24)
-  return `il y’a ${diffDays} j`
+  return `${diffDays}days ago`
 })
 </script>
 

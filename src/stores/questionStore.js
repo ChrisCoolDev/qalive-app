@@ -5,7 +5,7 @@ import { useSessionStore } from '@/stores/sessionStore'
 import { parseUTCDate } from '@/utils/dateHelper'
 import { analytics } from '@/lib/analytics'
 
-export const FREE_QUESTION_LIMIT = 70
+export const FREE_QUESTION_LIMIT = 15
 
 export const useQuestionStore = defineStore('question', () => {
   const questions = ref([])
@@ -72,10 +72,10 @@ export const useQuestionStore = defineStore('question', () => {
       throw new Error('Impossible de soumettre, la session est terminée.')
     }
 
-    // 2. Vérifier la limite de 70 questions sur le plan Gratuit
+    // 2. Vérifier la limite de 15 questions sur le plan Gratuit
     if (!isOwnerPremium.value && questions.value.length >= FREE_QUESTION_LIMIT) {
       analytics.trackEvent('question_limit_reached', { session_id: currentSession.value.id })
-      throw new Error('Cette session a atteint sa limite de 70 questions (Plan Gratuit).')
+      throw new Error(`Cette session a atteint sa limite de ${FREE_QUESTION_LIMIT} questions (Plan Gratuit).`)
     }
 
     try {
