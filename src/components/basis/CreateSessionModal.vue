@@ -50,20 +50,22 @@ const timingOptions = [
 
 const isUpcoming = computed(() => sessionTiming.value === 'upcoming')
 
-// Tooltip "Coming soon" collé au curseur pour Survey & Poll
+// Tooltip flottant collé au curseur ("Coming soon" ou "Pro feature")
 const tooltipVisible = ref(false)
+const tooltipText = ref('Coming soon')
 const tooltipPos = ref({ x: 0, y: 0 })
 
-function onDisabledTypeEnter(event) {
+function showCursorTooltip(event, text = 'Coming soon') {
+  tooltipText.value = text
   tooltipVisible.value = true
   tooltipPos.value = { x: event.clientX, y: event.clientY }
 }
 
-function onDisabledTypeMove(event) {
+function moveCursorTooltip(event) {
   tooltipPos.value = { x: event.clientX, y: event.clientY }
 }
 
-function onDisabledTypeLeave() {
+function hideCursorTooltip() {
   tooltipVisible.value = false
 }
 
@@ -184,9 +186,9 @@ const handleCreateSession = async () => {
           type="button"
           :aria-disabled="type.disabled"
           @click="!type.disabled && (sessionType = type.value)"
-          @mouseenter="type.disabled && onDisabledTypeEnter($event)"
-          @mousemove="type.disabled && onDisabledTypeMove($event)"
-          @mouseleave="type.disabled && onDisabledTypeLeave()"
+          @mouseenter="type.disabled && showCursorTooltip($event, 'Coming soon')"
+          @mousemove="type.disabled && moveCursorTooltip($event)"
+          @mouseleave="type.disabled && hideCursorTooltip()"
           :class="[
             'flex flex-col items-center justify-center gap-[6px] rounded-[8px] border transition-colors h-[56px]',
             type.disabled
@@ -271,8 +273,12 @@ const handleCreateSession = async () => {
           </div>
         </div>
 
-        <!-- Access code -->
-        <div>
+        <!-- Access code (Pro feature) -->
+        <div
+          @mouseenter="!isPremium && showCursorTooltip($event, 'Pro feature')"
+          @mousemove="!isPremium && moveCursorTooltip($event)"
+          @mouseleave="!isPremium && hideCursorTooltip()"
+        >
           <label
             for="session-access-code"
             class="block text-[14px] leading-[normal] text-black mb-2"
@@ -281,6 +287,7 @@ const handleCreateSession = async () => {
           </label>
           <div class="relative">
             <input
+              v-if="isPremium"
               id="session-access-code"
               v-model="accessCode"
               type="text"
@@ -288,12 +295,23 @@ const handleCreateSession = async () => {
               :disabled="loading"
               class="w-full h-[38px] pl-[10px] pr-[150px] border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors"
             />
+            <input
+              v-else
+              id="session-access-code"
+              type="text"
+              disabled
+              placeholder="Enter access code"
+              class="w-full h-[38px] pl-[10px] pr-[150px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] placeholder:text-[#666] outline-none cursor-not-allowed"
+            />
             <button
               id="generate-access-code"
               type="button"
-              @click="generateAccessCode"
-              :disabled="loading"
-              class="absolute right-[10px] top-1/2 -translate-y-1/2 text-[12px] text-[#1b1b1b] underline hover:text-[#E85D4A] transition-colors"
+              @click="isPremium && generateAccessCode()"
+              :disabled="loading || !isPremium"
+              :class="[
+                'absolute right-[10px] top-1/2 -translate-y-1/2 text-[12px] text-[#1b1b1b] underline transition-colors',
+                isPremium ? 'hover:text-[#E85D4A]' : 'opacity-50 cursor-not-allowed',
+              ]"
             >
               Generate automatically
             </button>
@@ -301,7 +319,11 @@ const handleCreateSession = async () => {
         </div>
 
         <!-- Session duration -->
-        <div>
+        <div
+          @mouseenter="!isPremium && showCursorTooltip($event, 'Pro feature')"
+          @mousemove="!isPremium && moveCursorTooltip($event)"
+          @mouseleave="!isPremium && hideCursorTooltip()"
+        >
           <label
             for="session-duration"
             class="block text-[14px] leading-[normal] text-black mb-2"
@@ -336,12 +358,22 @@ const handleCreateSession = async () => {
           </div>
         </div>
 
-        <!-- Live / Upcoming radio group (Figma node 49:538) -->
+        <!-- Live / Upcoming radio group (Figma node 49:538, Upcoming is Pro feature) -->
         <div class="flex items-center gap-[12px]" role="radiogroup">
           <label
             v-for="option in timingOptions"
             :key="option.value"
-            class="flex items-center gap-[6px] cursor-pointer"
+            @mouseenter="
+              option.value === 'upcoming' && !isPremium && showCursorTooltip($event, 'Pro feature')
+            "
+            @mousemove="option.value === 'upcoming' && !isPremium && moveCursorTooltip($event)"
+            @mouseleave="option.value === 'upcoming' && !isPremium && hideCursorTooltip()"
+            :class="[
+              'flex items-center gap-[6px]',
+              option.value === 'upcoming' && !isPremium
+                ? 'cursor-not-allowed opacity-60'
+                : 'cursor-pointer',
+            ]"
           >
             <input
               :id="`session-timing-${option.value}`"
@@ -349,6 +381,7 @@ const handleCreateSession = async () => {
               type="radio"
               name="session-timing"
               :value="option.value"
+              :disabled="option.value === 'upcoming' && !isPremium"
               class="sr-only"
             />
             <svg
@@ -378,7 +411,12 @@ const handleCreateSession = async () => {
         </div>
 
         <!-- Upcoming session date -->
-        <div :class="{ 'opacity-50': !isUpcoming }">
+        <div
+          :class="{ 'opacity-50': !isUpcoming }"
+          @mouseenter="!isPremium && showCursorTooltip($event, 'Pro feature')"
+          @mousemove="!isPremium && moveCursorTooltip($event)"
+          @mouseleave="!isPremium && hideCursorTooltip()"
+        >
           <label for="session-date" class="block text-[14px] leading-[normal] text-black mb-2">
             Upcoming session date
           </label>
@@ -387,8 +425,8 @@ const handleCreateSession = async () => {
             v-model="upcomingDate"
             :type="dateInputType"
             placeholder="Set the session date"
-            :disabled="!isUpcoming || loading"
-            :required="isUpcoming"
+            :disabled="!isUpcoming || !isPremium || loading"
+            :required="isUpcoming && isPremium"
             @focus="onDateFocus"
             @blur="onDateBlur"
             class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-black placeholder:text-[#666] outline-none focus:border-[#E85D4A] transition-colors disabled:cursor-not-allowed"
@@ -396,14 +434,19 @@ const handleCreateSession = async () => {
         </div>
 
         <!-- Timezone -->
-        <div :class="{ 'opacity-50': !isUpcoming }">
+        <div
+          :class="{ 'opacity-50': !isUpcoming }"
+          @mouseenter="!isPremium && showCursorTooltip($event, 'Pro feature')"
+          @mousemove="!isPremium && moveCursorTooltip($event)"
+          @mouseleave="!isPremium && hideCursorTooltip()"
+        >
           <label for="session-timezone" class="block text-[14px] leading-[normal] text-black mb-2">
             Timezone
           </label>
           <select
             id="session-timezone"
             v-model="timezone"
-            :disabled="!isUpcoming || loading"
+            :disabled="!isUpcoming || !isPremium || loading"
             class="w-full h-[38px] px-[10px] bg-white border border-[#e1e1e1] rounded-[6px] text-[14px] text-[#666] outline-none appearance-none focus:border-[#E85D4A] transition-colors disabled:cursor-not-allowed"
           >
             <option v-for="tz in timezoneOptions" :key="tz.value" :value="tz.value">
@@ -436,7 +479,7 @@ const handleCreateSession = async () => {
       </div>
     </div>
 
-    <!-- Floating cursor tooltip "Coming soon" for disabled types -->
+    <!-- Floating cursor tooltip ("Coming soon" or "Pro feature") -->
     <Teleport to="body">
       <div
         v-if="tooltipVisible"
@@ -446,7 +489,7 @@ const handleCreateSession = async () => {
         }"
         class="fixed -translate-x-1/2 -translate-y-full pointer-events-none z-[100] bg-[#1b1b1b] text-white text-[11px] px-2 py-1 rounded-[4px] whitespace-nowrap shadow-md"
       >
-        Coming soon
+        {{ tooltipText }}
       </div>
     </Teleport>
   </form>

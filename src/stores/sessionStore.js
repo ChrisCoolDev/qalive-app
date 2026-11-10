@@ -136,7 +136,11 @@ export const useSessionStore = defineStore('session', () => {
         ? customDuration.value * 60 * 60 * 1000
         : FREE_SESSION_DURATION_MS
 
-      const startDate = options.startsAt instanceof Date ? options.startsAt : new Date()
+      const finalAccessCode = isPremium.value ? accessCode.value?.trim() || null : null
+      const finalStartsAt =
+        isPremium.value && options.startsAt instanceof Date ? options.startsAt : null
+
+      const startDate = finalStartsAt || new Date()
       const expiresAt = new Date(startDate.getTime() + finalDurationMs).toISOString()
 
       // Insert DB
@@ -146,9 +150,9 @@ export const useSessionStore = defineStore('session', () => {
           {
             name: sessionName.value,
             slug: uniqueSlug,
-            access_code: accessCode.value?.trim() || null,
+            access_code: finalAccessCode,
             user_id: userId,
-            starts_at: options.startsAt instanceof Date ? options.startsAt.toISOString() : null,
+            starts_at: finalStartsAt ? finalStartsAt.toISOString() : null,
             type: options.type || 'qna',
             expires_at: expiresAt,
           },

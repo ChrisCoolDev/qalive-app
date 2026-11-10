@@ -354,8 +354,14 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
         'Survey and Poll options must be disabled',
       )
       assert.ok(
-        modalCode.includes('cursor-not-allowed') && modalCode.includes('Coming soon'),
-        'Disabled Survey/Poll tabs must show cursor-not-allowed and Coming soon cursor tooltip',
+        modalCode.includes('cursor-not-allowed') &&
+          modalCode.includes('Coming soon') &&
+          modalCode.includes('Pro feature'),
+        'Disabled Survey/Poll tabs must show Coming soon and Free-locked Access code / Upcoming must show Pro feature tooltip',
+      )
+      assert.ok(
+        modalCode.includes(":disabled=\"option.value === 'upcoming' && !isPremium\""),
+        'CreateSessionModal must lock Upcoming scheduling behind isPremium',
       )
       assert.ok(
         modalCode.includes('createSession({ type: sessionType.value, startsAt })'),
