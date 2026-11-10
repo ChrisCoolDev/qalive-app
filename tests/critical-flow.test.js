@@ -555,6 +555,61 @@ describe('QALive Critical Flow & Revenue Invariants', () => {
           focusModalCode.includes('Escape'),
         'QuestionFocusModal must support Prev/Next buttons and keyboard navigation',
       )
+      assert.ok(
+        focusModalCode.includes('isExpanded') &&
+          focusModalCode.includes('isExpanded = true') &&
+          focusModalCode.includes('isExpanded = false') &&
+          focusModalCode.includes('max-w-[975px]'),
+        'QuestionFocusModal must implement Figma 401:1350 expand button and 401:1333 expanded stage view',
+      )
+      assert.ok(
+        focusModalCode.includes("if (isExpanded.value) {\n      isExpanded.value = false\n    } else {\n      emit('close')\n    }"),
+        'Escape key must minimize expanded view before closing modal',
+      )
+    })
+  })
+
+  describe('12. Login View Redesign (Figma 408:1368)', () => {
+    it('implements the new login view with centered Google button, Terms disclaimer, and client social proof logos', () => {
+      const loginViewCode = fs.readFileSync(
+        path.join(ROOT, 'src/views/LoginView.vue'),
+        'utf8',
+      )
+
+      assert.ok(
+        loginViewCode.includes('Welcome back on qalive'),
+        'LoginView must feature the "Welcome back on qalive" heading',
+      )
+      assert.ok(
+        loginViewCode.includes('Sign in with Google') &&
+          loginViewCode.includes('w-[341px]') &&
+          loginViewCode.includes('h-[36px]'),
+        'LoginView must have the 341x36px Google sign in button',
+      )
+      assert.ok(
+        loginViewCode.includes('Terms of Service') &&
+          loginViewCode.includes('Privacy Policy') &&
+          loginViewCode.includes(':href="termsUrl"') &&
+          loginViewCode.includes(':href="privacyUrl"'),
+        'LoginView must link Terms of Service and Privacy Policy to active URLs',
+      )
+      assert.ok(
+        loginViewCode.includes('Join 1000+ organism hosting events with qalive'),
+        'LoginView must display the social proof tagline',
+      )
+
+      // Verify all 5 client logos exist on disk and are referenced in LoginView
+      for (let i = 1; i <= 5; i++) {
+        const logoPath = path.join(ROOT, `public/images/social-proof/logo-${i}.png`)
+        assert.ok(
+          fs.existsSync(logoPath),
+          `Social proof logo public/images/social-proof/logo-${i}.png must exist`,
+        )
+        assert.ok(
+          loginViewCode.includes(`logo-${i}.png`),
+          `LoginView must render logo-${i}.png`,
+        )
+      }
     })
   })
 })
