@@ -224,7 +224,7 @@ const dashboardInformations = computed(() =>
         <div class="cursor-pointer" @click="redirectToUserProfilePage">
           <img
             :src="user.user_metadata.picture"
-            class="w-9 h-9 rounded-[4px] border border-[#E85D4A] ml-2"
+            class="w-9 h-9 rounded-full ml-2"
           />
         </div>
       </div>
@@ -246,18 +246,37 @@ const dashboardInformations = computed(() =>
 
       <div
         v-else-if="totalSessions === 0"
-        class="text-center flex flex-col items-center space-y-4 text-gray-500 pt-[70px]"
+        class="text-center flex flex-col items-center space-y-2 text-gray-500 pt-[60px] pb-10"
       >
-        <img src="/illustrations/empty2.svg" alt="" class="max-w-[80%] md:max-w-full" />
+        <img
+          src="/illustrations/empty-sessions.png"
+          srcset="/illustrations/empty-sessions@2x.png 2x, /illustrations/empty-sessions@3x.png 3x"
+          alt=""
+          aria-hidden="true"
+          width="220"
+          height="200"
+          class="w-[180px] sm:w-[220px] h-auto object-contain select-none pointer-events-none mb-1"
+        />
         <h3 class="text-base font-medium text-gray-900">No sessions yet</h3>
-        <p class="text-[13px] max-w-sm">
+        <p class="text-[13px] max-w-sm text-gray-500">
           Create your first Q&amp;A session and share the link or QR code with your audience.
         </p>
         <button
           @click="openModal"
-          class="px-4 py-2 text-xs font-medium text-white bg-[#E85D4A] rounded-[4px] hover:bg-[#d44d3c] transition-colors"
+          class="inline-flex items-center justify-center space-x-[6px] px-3 py-[6px] text-[13px] font-medium text-white bg-[#E85D4A] rounded-[4px] hover:bg-[#d44d3c] transition-colors cursor-pointer"
         >
-          + Create your first session
+          <svg
+            class="w-[18px] h-[18px] shrink-0"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <path
+              fill="currentColor"
+              d="M18 13h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1s1 .45 1 1v5h5c.55 0 1 .45 1 1s-.45 1-1 1"
+            />
+          </svg>
+          <span>Create your first session</span>
         </button>
       </div>
 
