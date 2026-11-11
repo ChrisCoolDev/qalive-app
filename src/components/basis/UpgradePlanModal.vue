@@ -28,7 +28,7 @@ const plans = {
   },
   pass: {
     name: 'Event Pass',
-    price: '$15',
+    price: '$9',
     billing: 'One-time payment, valid for 7 days',
     features: [
       'Unlimited sessions for 7 days',
@@ -41,7 +41,7 @@ const plans = {
   },
   pro: {
     name: 'Pro',
-    price: '$15',
+    price: '$9',
     billing: 'per month',
     features: ['Everything in the Event Pass, renewed every month'],
   },
